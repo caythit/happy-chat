@@ -1,0 +1,13 @@
+.idea
+.classpath
+.project
+.settings
+.checkstyle
+.DS_Store
+*.iml
+target
+MANIFEST.MF
+release.properties
+pom.xml.releaseBackup
+**/.flattened-pom.xml
+.flattened-pom.xml
