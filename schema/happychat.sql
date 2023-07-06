@@ -5,9 +5,17 @@ CREATE TABLE `user_info` (
     `create_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录创建时间',
     `update_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录更新时间',
     `user_id` VARCHAR(100) NOT NULL COMMENT 'uuid',
-    `user_name` VARCHAR(200) NOT NULL COMMENT '用户名',
-    `user_pwd` VARCHAR(200) NOT NULL COMMENT '用户密码（加密）',
-    UNIQUE INDEX `uniq_user_id` (`user_id`)
+    `user_name` VARCHAR(50) NOT NULL COMMENT '用户名',
+    `user_pwd` VARCHAR(128) NOT NULL COMMENT '用户密码（加密）',
+    `email` VARCHAR(50) DEFAULT NULL COMMENT 'mail',
+    `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机',
+    `pwd_salt` varchar(50) NOT NULL DEFAULT '密码加盐',
+    `extra_info` text COLLATE utf8mb4_bin COMMENT '关闭的通知类别',
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `uniq_user_id` (`user_id`),
+    UNIQUE INDEX `uniq_user_name` (`user_name`),
+    KEY `email` (`email`),
+    KEY `phone` (`phone`),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 
 userId,robotId,messageId

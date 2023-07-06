@@ -8,26 +8,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.happy.chat.helper.UseHelper;
+import com.happy.chat.helper.UseApiHelper;
 
 @RestController
 @RequestMapping("/rest/h/user")
 public class UserController {
     @Autowired
-    private UseHelper useHelper;
+    private UseApiHelper useHelper;
 
     @RequestMapping("/login")
     public Map<String, Object> login(@RequestParam("userName") String userName,
                                      @RequestParam("password") String password) {
-        Map<String, Object> result = new HashMap<String, Object>();
-        return result;
+        return useHelper.doLogin(userName, password);
     }
 
     @RequestMapping("/register")
     public Map<String, Object> register(@RequestParam("userName") String userName,
                                         @RequestParam("password") String password) {
-        Map<String, Object> result = new HashMap<String, Object>();
-        return result;
+        return useHelper.doRegister(userName, password);
     }
 
     @RequestMapping("/logout")
