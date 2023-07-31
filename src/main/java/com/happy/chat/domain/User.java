@@ -1,10 +1,11 @@
-package com.happy.chat.model;
+package com.happy.chat.domain;
 
 import lombok.Data;
 
 @Data
 public class User {
     private String userId;
+    private String userPreferInfo;
     private String userName;
     private String userPwd;
     private String email;

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import com.happy.chat.dao.UserDao;
-import com.happy.chat.model.User;
+import com.happy.chat.domain.User;
 import com.happy.chat.model.UserGetRequest;
 import com.happy.chat.service.UserService;
 
@@ -21,9 +21,35 @@ public class UserServiceImpl implements UserService {
         if (StringUtils.isNotEmpty(request.getUserId())) {
             return userDao.getUserById(request.getUserId());
         }
-        if (StringUtils.isNotEmpty(request.getUserName())) {
-            return userDao.getUserByName(request.getUserName());
+        if (StringUtils.isNotEmpty(request.getEmail())) {
+            return userDao.getUserByEmail(request.getEmail());
         }
         return null;
+    }
+
+    @Override
+    public int addUser(User user) {
+        return userDao.insert(user);
+    }
+
+    @Override
+    public int addDummyUser(String userId) {
+        return userDao.insertForDummy(userId);
+    }
+
+
+    @Override
+    public int updateUserPreferInfo(String userId, String preferInfo) {
+        return userDao.updateUserPreferInfo(userId, preferInfo);
+    }
+
+    @Override
+    public int resetUserPwd(String userId, String encryptPwd) {
+        return userDao.updateUserPassword(userId, encryptPwd);
+    }
+
+    @Override
+    public int rebindEmail(String userId, String email) {
+        return userDao.updateUserEmail(userId, email);
     }
 }

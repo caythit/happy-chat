@@ -6,6 +6,6 @@ import lombok.Data;
 @Builder
 @Data
 public class UserGetRequest {
-    private String userName;
+    private String email;
     private String userId;
 }

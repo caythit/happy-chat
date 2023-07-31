@@ -1,6 +1,6 @@
 package com.happy.chat.view;
 
-import com.happy.chat.model.User;
+import com.happy.chat.domain.User;
 
 import lombok.Data;
 
@@ -8,15 +8,15 @@ import lombok.Data;
  * 返回上层用的
  */
 @Data
-public class UserView {
+public class UserInfoView {
     private String userId;
     private String userName;
     private String email;
     private String phone;
     private String extraInfo;
 
-    public static UserView convert(User user) {
-        UserView userView = new UserView();
+    public static UserInfoView convert(User user) {
+        UserInfoView userView = new UserInfoView();
         userView.setUserId(user.getUserId());
         userView.setUserName(user.getUserName());
         userView.setEmail(user.getEmail());
