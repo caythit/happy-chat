@@ -10,6 +10,7 @@ import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
 import static com.happy.chat.uitls.CacheKeyProvider.startupConfigKey;
+import static com.happy.chat.uitls.PrometheusUtils.perf;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,15 +32,17 @@ import com.happy.chat.view.RobotInfoView;
 import com.happy.chat.view.StartupConfigView;
 
 import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.Counter;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/rest/h/test")
 @Slf4j
 public class TestController {
+    private final String prometheusName = "test";
+    private final String prometheusHelp = "testApi";
+
     @Autowired
-    private CollectorRegistry registry;
+    private CollectorRegistry testRegistry;
 
     @Autowired
     private RobotService robotService;
@@ -50,9 +53,8 @@ public class TestController {
     @RequestMapping("/test")
     public Map<String, Object> test(@RequestParam("userName") String userName) {
         Map<String, Object> result = ApiResult.ofSuccess();
-        Counter cp = Counter.build("test_api", "返回码").labelNames("path", "code")
-                .register(registry);
-        cp.labels("/test", "0").inc();
+        perf(testRegistry, prometheusName, prometheusHelp, "testApi_recall");
+
         result.put("data", String.format("hello, %s", userName));
         log.info("test log...");
         return result;
