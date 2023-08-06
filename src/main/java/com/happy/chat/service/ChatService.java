@@ -1,22 +1,21 @@
 package com.happy.chat.service;
 
 import java.util.List;
-import java.util.function.Function;
 
-import com.happy.chat.domain.ChatMessage;
+import com.happy.chat.domain.FlirtopiaChat;
 import com.happy.chat.domain.IceBreakWord;
 import com.happy.chat.model.ChatResponse;
 
 public interface ChatService {
     List<IceBreakWord> getIceBreakWordsByRobot(String robotId);
 
-    List<ChatMessage> getUserChatMessage(String userId);
+    List<FlirtopiaChat> getUserHistoryChats(String userId);
 
-    int insert(ChatMessage chatMessage);
+    int insert(FlirtopiaChat flirtopiaChat);
 
-    int batchInsert(List<ChatMessage> chatMessages);
+    int batchInsert(List<FlirtopiaChat> flirtopiaChats);
 
-    ChatResponse requestChat(String userId, String robotId, String content, Function<String, List<ChatMessage>> userHistoryChatFunc);
+    ChatResponse requestChat(String userId, String robotId, String content);
 
-    List<ChatMessage> getUserRobotChatMessage(String userId, String robotId);
+    List<FlirtopiaChat> getUserRobotHistoryChats(String userId, String robotId);
 }

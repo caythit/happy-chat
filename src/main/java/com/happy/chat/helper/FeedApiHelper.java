@@ -23,9 +23,11 @@ import com.happy.chat.view.FeedView;
 import com.happy.chat.view.RobotInfoView;
 
 import io.prometheus.client.CollectorRegistry;
+import lombok.extern.slf4j.Slf4j;
 
 @Lazy
 @Component
+@Slf4j
 public class FeedApiHelper {
 
     private final String prometheusName = "feed";
@@ -54,6 +56,7 @@ public class FeedApiHelper {
                 perf(feedRegistry, prometheusName, prometheusHelp, "user_get_success", userId);
                 feedView.setUserName(user.getUserName());
             } else {
+                log.error("feed user get failed, userId={}", userId);
                 perf(feedRegistry, prometheusName, prometheusHelp, "user_get_failed", userId);
             }
         }
@@ -63,6 +66,7 @@ public class FeedApiHelper {
                 .map(RobotInfoView::convertRobot)
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(robotInfoViewList)) {
+            log.error("feed robot get failed, userId={}", userId);
             perf(feedRegistry, prometheusName, prometheusHelp, "robot_get_failed", userId);
         } else {
             perf(feedRegistry, prometheusName, prometheusHelp, "robot_get_success", userId);

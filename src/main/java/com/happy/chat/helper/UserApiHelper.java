@@ -49,6 +49,7 @@ public class UserApiHelper {
 
         // 没有拿到
         if (user == null) {
+            log.error("doLoginByEmail user null {}", email);
             perf(userRegistry, prometheusName, prometheusHelp, "login_failed_by_not_exist", email);
             return ApiResult.ofFail(ErrorEnum.USER_NOT_EXIST);
         }
@@ -56,6 +57,7 @@ public class UserApiHelper {
         // 解密
         String decodePwd = CommonUtils.decryptPwd(user.getPwdSalt(), user.getUserPwd());
         if (!StringUtils.equals(password, decodePwd)) {
+            log.error("doLoginByEmail password not correct {} {}", email, password);
             perf(userRegistry, prometheusName, prometheusHelp, "login_failed_by_pwd_error", email);
             return ApiResult.ofFail(ErrorEnum.PASSWORD_ERROR);
         }
@@ -71,6 +73,7 @@ public class UserApiHelper {
 
         ErrorEnum registerErr = registerVerify(userName, password);
         if (registerErr != ErrorEnum.SUCCESS) {
+            log.error("doRegisterByEmail verify failed {} {}", userName, password);
             return ApiResult.ofFail(registerErr);
         }
         // 加密
@@ -86,6 +89,7 @@ public class UserApiHelper {
         user.setPwdSalt(salt);
         int effectRow = userService.addUser(user);
         if (effectRow <= 0) {
+            log.error("doRegisterByEmail verify failed {} {}", email, dummyUserId);
             perf(userRegistry, prometheusName, prometheusHelp, "reg_failed_by_server_error", email);
             return ApiResult.ofFail(SERVER_ERROR);
         }
@@ -100,11 +104,13 @@ public class UserApiHelper {
     private ErrorEnum registerVerify(String email, String password) {
         // 检查email的有效性
         if (!CommonUtils.emailPatternValid(email)) {
+            log.error("registerVerify failed by email pattern invalid {}", email);
             perf(userRegistry, prometheusName, prometheusHelp, "reg_failed_by_email_invalid", email);
             return ErrorEnum.EMAIL_PATTERN_INVALID;
         }
 
         if (!CommonUtils.passwordPatternValid(password)) {
+            log.error("registerVerify failed by password pattern invalid {}", password);
             perf(userRegistry, prometheusName, prometheusHelp, "reg_failed_by_pwd_invalid", email);
             return ErrorEnum.PASSWORD_PATTERN_INVALID;
         }
@@ -113,6 +119,7 @@ public class UserApiHelper {
                 .email(email)
                 .build());
         if (user != null) {
+            log.error("registerVerify failed by email already used {}", email);
             perf(userRegistry, prometheusName, prometheusHelp, "reg_failed_by_user_exist", email);
             return ErrorEnum.USER_EMAIL_ALREADY_USED;
         }
@@ -126,11 +133,13 @@ public class UserApiHelper {
                 .userId(userId)
                 .build());
         if (user == null) {
+            log.error("{} checkPassword failed by user null {}", purpose, userId);
             perf(userRegistry, prometheusName, prometheusHelp, "check_password_failed_by_user_not_exist", purpose, userId);
             return ErrorEnum.USER_NOT_EXIST;
         }
         String decryptPwd = CommonUtils.decryptPwd(user.getPwdSalt(), user.getUserPwd());
         if (!decryptPwd.equals(password)) {
+            log.error("{} checkPassword failed password incorrect {}", purpose, userId);
             perf(userRegistry, prometheusName, prometheusHelp, "check_password_failed_by_pwd_error", purpose, userId);
             return ErrorEnum.PASSWORD_ERROR;
         }
@@ -142,6 +151,7 @@ public class UserApiHelper {
     public Map<String, Object> rebindEmail(String userId, String email) {
         int effectRow = userService.rebindEmail(userId, email);
         if (effectRow <= 0) {
+            log.error("rebindEmail insert db failed {} {}", userId, email);
             perf(userRegistry, prometheusName, prometheusHelp, "rebind_email_failed_by_db_error", userId, email);
             return ApiResult.ofFail(ErrorEnum.REBIND_EMAIL_FAIL);
         }
@@ -154,6 +164,7 @@ public class UserApiHelper {
     public Map<String, Object> resetPassword(String userId, String pwd, String purpose) {
         // 检查新密码的格式符合要求
         if (!CommonUtils.passwordPatternValid(pwd)) {
+            log.error("{} resetPassword failed by pattern invalid {}", purpose, userId);
             perf(userRegistry, prometheusName, prometheusHelp, "reset_password_failed_by_pattern_invalid", userId, purpose);
             return ApiResult.ofFail(ErrorEnum.PASSWORD_PATTERN_INVALID);
         }
@@ -161,6 +172,7 @@ public class UserApiHelper {
                 .userId(userId)
                 .build());
         if (user == null) {
+            log.error("{} resetPassword failed by user null {}", purpose, userId);
             perf(userRegistry, prometheusName, prometheusHelp, "reset_password_failed_by_user_not_exist", userId, purpose);
             return ApiResult.ofFail(ErrorEnum.USER_NOT_EXIST);
         }
@@ -168,6 +180,7 @@ public class UserApiHelper {
         String encryptPwd = CommonUtils.encryptPwd(user.getPwdSalt(), pwd);
         int effectRow = userService.resetUserPwd(userId, encryptPwd);
         if (effectRow <= 0) {
+            log.error("{} resetPassword failed by insert db {}", purpose, userId);
             perf(userRegistry, prometheusName, prometheusHelp, "reset_password_failed_by_db_error", userId, purpose);
             return ApiResult.ofFail(ErrorEnum.RESET_PASSWORD_FAIL);
         }

@@ -30,9 +30,11 @@ import com.happy.chat.uitls.CommonUtils;
 import com.happy.chat.uitls.RedisUtil;
 
 import io.prometheus.client.CollectorRegistry;
+import lombok.extern.slf4j.Slf4j;
 
 @Lazy
 @Component
+@Slf4j
 public class EmailHelper {
     private final String prometheusName = "email";
     private final String prometheusHelp = "email_operation";
@@ -58,6 +60,7 @@ public class EmailHelper {
         // check email 格式
         boolean emailValid = CommonUtils.emailPatternValid(email);
         if (!emailValid) {
+            log.error("sendEmail, emailInValid {}", email);
             perf(emailRegistry, prometheusName, prometheusHelp, "send_email_failed_by_pattern_invalid", email, purpose);
             return ErrorEnum.EMAIL_PATTERN_INVALID;
         }
@@ -68,6 +71,7 @@ public class EmailHelper {
                     .email(email)
                     .build());
             if (user == null) {
+                log.error("sendEmail, checkEmailBind user null {}", email);
                 perf(emailRegistry, prometheusName, prometheusHelp, "send_email_failed_by_not_exist", email, purpose);
                 return ErrorEnum.EMAIL_NOT_EXIST;
             }
@@ -79,8 +83,10 @@ public class EmailHelper {
             text = text + "\n" + code;
             sendByTSL(mailUser, decryptPwd(mailPwdSalt, mailEncryPwd), mailFrom, email, subject, text);
             perf(emailRegistry, prometheusName, prometheusHelp, "send_email_success", email, purpose);
+            log.info("sendEmail success {} {}", email, code);
             return ErrorEnum.SUCCESS;
         } catch (Exception e) {
+            log.error("sendEmail, exception {}", email, e);
             perf(emailRegistry, prometheusName, prometheusHelp, "send_email_failed_by_exception", email, purpose);
             return ErrorEnum.EMAIL_SEND_CODE_FAIL;
         }
@@ -89,13 +95,16 @@ public class EmailHelper {
     public ErrorEnum verifyCode(String email, String emailVerifyCode, String purpose) {
         String code = redisUtil.get(CacheKeyProvider.mailCodeKey(email));
         if (StringUtils.isEmpty(code)) {
+            log.error("verifyEmailCodeFailed, {} code {} expire", email, code);
             perf(emailRegistry, prometheusName, prometheusHelp, "verify_email_failed_expire", email, purpose);
             return ErrorEnum.EMAIL_VERIFY_CODE_EXPIRE;
         }
         if (!emailVerifyCode.equals(code)) {
+            log.error("verifyEmailCodeFailed, {} {} code not matched", emailVerifyCode, code);
             perf(emailRegistry, prometheusName, prometheusHelp, "verify_email_failed_error", email, purpose);
             return ErrorEnum.EMAIL_VERIFY_CODE_ERROR;
         }
+        log.info("verify code success");
         perf(emailRegistry, prometheusName, prometheusHelp, "verify_email_failed_success", email, purpose);
         return ErrorEnum.SUCCESS;
 

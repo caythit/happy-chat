@@ -4,6 +4,7 @@ import static com.happy.chat.constants.Constant.CHAT_FROM_ROBOT;
 import static com.happy.chat.constants.Constant.CHAT_FROM_USER;
 import static com.happy.chat.constants.Constant.DATA;
 import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_PAY_TIPS;
+import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_WARN_TIPS;
 import static com.happy.chat.constants.Constant.MESSAGE_ID_PREFIX;
 import static com.happy.chat.uitls.PrometheusUtils.perf;
 import static java.util.stream.Collectors.groupingBy;
@@ -22,10 +23,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
-import com.happy.chat.domain.ChatMessage;
+import com.happy.chat.domain.FlirtopiaChat;
 import com.happy.chat.domain.IceBreakWord;
 import com.happy.chat.domain.Robot;
-import com.happy.chat.enums.ChatMessageType;
 import com.happy.chat.enums.ErrorEnum;
 import com.happy.chat.model.ChatResponse;
 import com.happy.chat.service.ChatService;
@@ -34,14 +34,16 @@ import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.CommonUtils;
 import com.happy.chat.uitls.ObjectMapperUtils;
-import com.happy.chat.view.ChatMessageView;
+import com.happy.chat.view.FlirtopiaChatView;
 import com.happy.chat.view.IceBreakWordView;
 import com.happy.chat.view.UserChatListView;
 
 import io.prometheus.client.CollectorRegistry;
+import lombok.extern.slf4j.Slf4j;
 
 @Lazy
 @Component
+@Slf4j
 public class ChatApiHelper {
     private final String prometheusName = "chat";
     private final String prometheusHelp = "chat_operation";
@@ -50,24 +52,25 @@ public class ChatApiHelper {
     private CollectorRegistry chatRegistry;
 
     @Autowired
-    private RobotService robotService;
+    private ChatService chatService;
 
     @Autowired
-    private ChatService chatService;
+    private RobotService robotService;
 
     @Autowired
     private PaymentService paymentService;
 
     public Map<String, Object> getIceBreakWords(String robotId) {
         Map<String, Object> result = ApiResult.ofSuccess();
-        Robot robot = robotService.getRobotById(robotId);
         List<IceBreakWord> iceBreakWords = chatService.getIceBreakWordsByRobot(robotId);
         if (CollectionUtils.isEmpty(iceBreakWords)) {
+            log.error("getIceBreakWordsByRobot empty {}", robotId);
             perf(chatRegistry, prometheusName, prometheusHelp, "ice_break_get_failed_by_empty", robotId);
             return result;
         }
+
         List<IceBreakWordView> iceBreakWordViews = iceBreakWords.stream()
-                .map(w -> IceBreakWordView.convertIceBreakWord(w, robot))
+                .map(IceBreakWordView::convertIceBreakWord)
                 .collect(Collectors.toList());
         result.put(DATA, iceBreakWordViews);
         perf(chatRegistry, prometheusName, prometheusHelp, "ice_break_get_success", robotId);
@@ -75,31 +78,32 @@ public class ChatApiHelper {
     }
 
     public Map<String, Object> listUserChat(String userId) {
-        List<ChatMessage> chatMessages = chatService.getUserChatMessage(userId);
-        if (CollectionUtils.isEmpty(chatMessages)) {
+        List<FlirtopiaChat> flirtopiaChats = chatService.getUserHistoryChats(userId);
+        if (CollectionUtils.isEmpty(flirtopiaChats)) {
+            log.error("listUserChat empty {}", userId);
             perf(chatRegistry, prometheusName, prometheusHelp, "user_history_chat_empty", userId);
             return ApiResult.ofSuccess();
         }
 
-        Set<String> robotIdSet = chatMessages.stream()
-                .map(ChatMessage::getRobotId)
+        Set<String> robotIdSet = flirtopiaChats.stream()
+                .map(FlirtopiaChat::getRobotId)
                 .collect(Collectors.toSet());
         Map<String, Robot> robotMap = robotService.batchGetRobotById(robotIdSet);
         List<String> userSubscribeRobots = paymentService.getUserSubscribeRobotIds(userId);
 
         // key=robotId， value为最新的一次聊天信息
-        Map<String, ChatMessage> robotChatMsgMap = chatMessages.stream()
-                .collect(groupingBy(ChatMessage::getRobotId))
+        Map<String, FlirtopiaChat> robotChatMsgMap = flirtopiaChats.stream()
+                .collect(groupingBy(FlirtopiaChat::getRobotId))
                 .entrySet()
                 .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry-> entry.getValue().stream()
-                        .sorted(Comparator.comparing(ChatMessage::getCreateTime).reversed())
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().stream()
+                        .sorted(Comparator.comparing(FlirtopiaChat::getCreateTime).reversed())
                         .collect(Collectors.toList())
                         .get(0)));
 
 
         List<UserChatListView> userChatListViews = new ArrayList<>();
-        for(Map.Entry<String, ChatMessage> entry : robotChatMsgMap.entrySet()) {
+        for (Map.Entry<String, FlirtopiaChat> entry : robotChatMsgMap.entrySet()) {
             String robotId = entry.getKey();
             if (robotMap.containsKey(robotId)) {
                 Robot robot = robotMap.get(robotId);
@@ -110,11 +114,13 @@ public class ChatApiHelper {
                 userHistoryChatListView.setRobotName(robot.getName());
                 userHistoryChatListView.setRobotHeadUrl(robot.getHeadUrl());
 
-                ChatMessage latestChatMessage = robotChatMsgMap.get(robotId);
-                userHistoryChatListView.setLastMessageContent(latestChatMessage.getContent());
-                userHistoryChatListView.setLastMessageSendTime(latestChatMessage.getCreateTime());
+                FlirtopiaChat latestChat = robotChatMsgMap.get(robotId);
+                userHistoryChatListView.setLastMessageContent(latestChat.getContent());
+                userHistoryChatListView.setLastMessageSendTime(latestChat.getCreateTime());
 
                 userChatListViews.add(userHistoryChatListView);
+            } else {
+                log.error("robotMap not contains {}", robotId);
             }
         }
 
@@ -130,13 +136,14 @@ public class ChatApiHelper {
     }
 
     public Map<String, Object> getUserRobotHistoryChats(String userId, String robotId) {
-        List<ChatMessage> chatMessages = chatService.getUserRobotChatMessage(userId, robotId);
-        if (CollectionUtils.isEmpty(chatMessages)) {
+        List<FlirtopiaChat> flirtopiaChats = chatService.getUserRobotHistoryChats(userId, robotId);
+        if (CollectionUtils.isEmpty(flirtopiaChats)) {
+            log.error("getUserRobotHistoryChats empty {} {} ", userId, robotId);
             perf(chatRegistry, prometheusName, prometheusHelp, "user_robot_chat_empty", userId);
             return ApiResult.ofSuccess();
         }
         Map<String, Object> result = ApiResult.ofSuccess();
-        result.put(DATA, chatMessages.stream().map(ChatMessageView::convertChatMessage).collect(Collectors.toList()));
+        result.put(DATA, flirtopiaChats.stream().map(FlirtopiaChatView::convertChat).collect(Collectors.toList()));
         return result;
     }
 
@@ -151,39 +158,38 @@ public class ChatApiHelper {
      * @return
      */
     public Map<String, Object> request(String userId, String robotId, String content) {
-        ChatMessage userRequestMessage = new ChatMessage();
+        FlirtopiaChat userRequestMessage = new FlirtopiaChat();
         userRequestMessage.setUserId(userId);
         userRequestMessage.setRobotId(robotId);
         userRequestMessage.setMessageId(CommonUtils.uuid(MESSAGE_ID_PREFIX));
         userRequestMessage.setMessageFrom(CHAT_FROM_USER);
-        userRequestMessage.setMessageType(ChatMessageType.NORMAL.name());
+        userRequestMessage.setMessageType("normal");
         userRequestMessage.setContent(content);
         userRequestMessage.setCreateTime(System.currentTimeMillis());
         userRequestMessage.setUpdateTime(System.currentTimeMillis());
         int effectRow = chatService.insert(userRequestMessage);
         if (effectRow <= 0) {
+            log.error("request insert db failed {} {} {}", userId, robotId, content);
             perf(chatRegistry, prometheusName, prometheusHelp, "request_chat_failed_by_req_db_error", userId, robotId);
             return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
         }
-        // todo 请求和回复内容含有敏感词（配置，后面会增加），若有则直接返回
 
-        // todo 付费提示，付费完成的文案 写入到配置
-        // todo 不同条数请求不同服务 付费提示来自于模型？
-        // 回复内容含有敏感词 兜底回复 三五条
-        ChatResponse chatResponse = chatService.requestChat(userId, robotId, content, chatService::getUserChatMessage);
+        // 请求聊天回复，逻辑复杂
+        ChatResponse chatResponse = chatService.requestChat(userId, robotId, content);
 
         // 没拿到
         if (chatResponse == null) {
+            log.error("response return null {} {} {}", userId, robotId, content);
             perf(chatRegistry, prometheusName, prometheusHelp, "request_chat_failed_by_no_resp", userId, robotId);
             return ApiResult.ofFail(ErrorEnum.CHAT_NO_RESP);
         }
 
-        ChatMessage robotRespMessage = new ChatMessage();
+        FlirtopiaChat robotRespMessage = new FlirtopiaChat();
         robotRespMessage.setUserId(userId);
         robotRespMessage.setRobotId(robotId);
         robotRespMessage.setMessageId(CommonUtils.uuid(MESSAGE_ID_PREFIX));
         robotRespMessage.setMessageFrom(CHAT_FROM_ROBOT);
-        robotRespMessage.setMessageType(ChatMessageType.NORMAL.name());
+        robotRespMessage.setMessageType("normal");
         robotRespMessage.setContent(chatResponse.getContent());
         robotRespMessage.setCreateTime(System.currentTimeMillis());
         robotRespMessage.setUpdateTime(System.currentTimeMillis());
@@ -192,14 +198,22 @@ public class ChatApiHelper {
             robotRespMessage.setExtraInfo(
                     ObjectMapperUtils.toJSON(ImmutableMap.of(EXTRA_INFO_MESSAGE_PAY_TIPS, chatResponse.getPayTips())));
         }
+
+        if (StringUtils.isNotEmpty(chatResponse.getWarnTips())) {
+            // 提示文案
+            robotRespMessage.setExtraInfo(
+                    ObjectMapperUtils.toJSON(ImmutableMap.of(EXTRA_INFO_MESSAGE_WARN_TIPS, chatResponse.getWarnTips())));
+        }
+
         Map<String, Object> result = ApiResult.ofSuccess();
         effectRow = chatService.insert(robotRespMessage);
 
         if (effectRow <= 0) {
+            log.error("response insert db failed {} {} {}", userId, robotId, content);
             perf(chatRegistry, prometheusName, prometheusHelp, "request_chat_resp_failed_by_db_error", userId, robotId);
             return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
         }
-        result.put(DATA, ChatMessageView.convertChatMessage(robotRespMessage));
+        result.put(DATA, FlirtopiaChatView.convertChat(robotRespMessage));
         return result;
 
     }

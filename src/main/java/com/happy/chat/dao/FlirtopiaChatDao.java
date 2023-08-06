@@ -13,20 +13,20 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import com.happy.chat.domain.ChatMessage;
+import com.happy.chat.domain.FlirtopiaChat;
 import com.happy.chat.domain.IceBreakWord;
 
 @Lazy
 @Component
-public class ChatMessageDao {
+public class FlirtopiaChatDao {
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
     public static final String ICE_BREAK_WORD_TABLE_NAME = "robot_ice_break_word";
-    public static final String CHAT_TABLE_NAME = "chat_message";
+    public static final String CHAT_TABLE_NAME = "flirtopia_chat";
 
     private final RowMapper<IceBreakWord> iceBreakWordRowMapper = new BeanPropertyRowMapper<>(IceBreakWord.class);
-    private final RowMapper<ChatMessage> chatMessageRowMapper = new BeanPropertyRowMapper<>(ChatMessage.class);
+    private final RowMapper<FlirtopiaChat> chatRowMapper = new BeanPropertyRowMapper<>(FlirtopiaChat.class);
 
 
     public List<IceBreakWord> getRobotIceBreakWords(String robotId) {
@@ -37,29 +37,29 @@ public class ChatMessageDao {
         return jdbcTemplate.query(sql, params, iceBreakWordRowMapper);
     }
 
-    public List<ChatMessage> getUserChatList(String userId) {
+    public List<FlirtopiaChat> getUserChatList(String userId) {
         String sql = format("select * from %s where user_id = :userId)", CHAT_TABLE_NAME);
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("userId", userId);
-        return jdbcTemplate.query(sql, params, chatMessageRowMapper);
+        return jdbcTemplate.query(sql, params, chatRowMapper);
     }
 
-    public int insertChat(ChatMessage chatMessage) {
+    public int insertChat(FlirtopiaChat chat) {
         String sql = "insert into " + CHAT_TABLE_NAME
                 + " (user_id, robot_id, message_id,message_type, message_from, content, extra_info, create_time, update_time) "
                 + " values (:userId, :robotId, :messageId, :messageType, :messageFrom, :content, :extraInfo, :createTime, :updateTime) "
                 + " on duplicate key update modify_time = :modifyTime";
         MapSqlParameterSource params = new MapSqlParameterSource();
 
-        params.addValue("userId", chatMessage.getUserId());
-        params.addValue("robotId", chatMessage.getRobotId());
-        params.addValue("messageId", chatMessage.getMessageId());
-        params.addValue("messageType", chatMessage.getMessageType());
-        params.addValue("messageFrom", chatMessage.getMessageFrom());
-        params.addValue("content", chatMessage.getContent());
+        params.addValue("userId", chat.getUserId());
+        params.addValue("robotId", chat.getRobotId());
+        params.addValue("messageId", chat.getMessageId());
+        params.addValue("messageType", chat.getMessageType());
+        params.addValue("messageFrom", chat.getMessageFrom());
+        params.addValue("content", chat.getContent());
 
-        if (StringUtils.isNotEmpty(chatMessage.getExtraInfo())) {
-            params.addValue("extraInfo", chatMessage.getExtraInfo());
+        if (StringUtils.isNotEmpty(chat.getExtraInfo())) {
+            params.addValue("extraInfo", chat.getExtraInfo());
         }
 
         params.addValue("createTime", System.currentTimeMillis());
@@ -67,26 +67,26 @@ public class ChatMessageDao {
         return jdbcTemplate.update(sql, params);
     }
 
-    public int batchInsertChat(List<ChatMessage> chatMessages) {
+    public int batchInsertChat(List<FlirtopiaChat> chats) {
         String sql = "INSERT ignore INTO " + CHAT_TABLE_NAME
                 + " (user_id, robot_id, message_id,message_type, message_from, content, extra_info, create_time, update_time) "
                 + " values (:userId, :robotId, :messageId, :messageType, :messageFrom, :content, :extraInfo, :createTime, :updateTime) "
                 + " on duplicate key update modify_time = :modifyTime";
 
         return jdbcTemplate.batchUpdate(sql,
-                chatMessages.stream()
-                        .map(chatMessage -> {
+                chats.stream()
+                        .map(chat -> {
                             MapSqlParameterSource params = new MapSqlParameterSource();
 
-                            params.addValue("userId", chatMessage.getUserId());
-                            params.addValue("robotId", chatMessage.getRobotId());
-                            params.addValue("messageId", chatMessage.getMessageId());
-                            params.addValue("messageType", chatMessage.getMessageType());
-                            params.addValue("messageFrom", chatMessage.getMessageFrom());
-                            params.addValue("content", chatMessage.getContent());
+                            params.addValue("userId", chat.getUserId());
+                            params.addValue("robotId", chat.getRobotId());
+                            params.addValue("messageId", chat.getMessageId());
+                            params.addValue("messageType", chat.getMessageType());
+                            params.addValue("messageFrom", chat.getMessageFrom());
+                            params.addValue("content", chat.getContent());
 
-                            if (StringUtils.isNotEmpty(chatMessage.getExtraInfo())) {
-                                params.addValue("extraInfo", chatMessage.getExtraInfo());
+                            if (StringUtils.isNotEmpty(chat.getExtraInfo())) {
+                                params.addValue("extraInfo", chat.getExtraInfo());
                             }
 
                             params.addValue("createTime", System.currentTimeMillis());
@@ -96,12 +96,12 @@ public class ChatMessageDao {
                         .toArray(MapSqlParameterSource[]::new)).length;
     }
 
-    public List<ChatMessage> getUserRobotChats(String userId, String robotId) {
+    public List<FlirtopiaChat> getUserRobotChats(String userId, String robotId) {
         String sql = format("select * from %s where user_id = :userId and robot_id = :robotId)", CHAT_TABLE_NAME);
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("userId", userId);
         params.addValue("robotId", robotId);
-        return jdbcTemplate.query(sql, params, chatMessageRowMapper);
+        return jdbcTemplate.query(sql, params, chatRowMapper);
 
     }
 }

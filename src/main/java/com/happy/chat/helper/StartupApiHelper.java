@@ -21,9 +21,11 @@ import com.happy.chat.view.StartupConfigView;
 import com.happy.chat.view.StartupConfigView.RobotStartupView;
 
 import io.prometheus.client.CollectorRegistry;
+import lombok.extern.slf4j.Slf4j;
 
 @Lazy
 @Component
+@Slf4j
 public class StartupApiHelper {
 
     private final String prometheusName = "startup";
@@ -44,6 +46,7 @@ public class StartupApiHelper {
         StartupConfigView view = ObjectMapperUtils.fromJSON(str, StartupConfigView.class);
 
         if (view == null) {
+            log.error("getConfig failed, use mock view");
             perf(startupRegistry, prometheusName, prometheusHelp, "mock_config");
             view = mockView();
         } else {
@@ -54,6 +57,7 @@ public class StartupApiHelper {
         String dummyUserId = CommonUtils.uuid(USER_ID_PREFIX);
         int effectRow = userService.addDummyUser(dummyUserId);
         if (effectRow <= 0) {
+            log.error("insert db dummy user failed {}", dummyUserId);
             perf(startupRegistry, prometheusName, prometheusHelp, "add_dummy_user_failed");
         }
         view.setDummyUid(dummyUserId);
@@ -85,6 +89,7 @@ public class StartupApiHelper {
         int effectRow = userService.updateUserPreferInfo(userId, preferInfo);
         if (effectRow <= 0) {
             // 打点
+            log.error("recordUserPrefer failed {} {} {}", userId, preferRobotId, agePrefer);
             perf(startupRegistry, prometheusName, prometheusHelp, "user_prefer_info_failed", userId, preferRobotId, agePrefer);
             return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
         }

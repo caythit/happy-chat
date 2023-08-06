@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.happy.chat.helper.FeedApiHelper;
 
+import lombok.extern.slf4j.Slf4j;
+
 @RestController
 @RequestMapping("/rest/h/feed")
+@Slf4j
 public class FeedController {
 
     @Autowired
@@ -27,6 +30,7 @@ public class FeedController {
     @RequestMapping("/foryou")
     public Map<String, Object> foryou(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                       @RequestParam(value = "size", defaultValue = "100") int size) {
+        log.info("foryou {}", userId);
         return feedApiHelper.foryou(userId, size);
     }
 }

@@ -47,7 +47,7 @@ CREATE TABLE `robot_ice_break_word` (
     `extra_info` text COLLATE utf8mb4_bin COMMENT '额外信息'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `chat_message` (
+CREATE TABLE `flirtopia_chat` (
     `id` BIGINT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
     `create_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录创建时间',
     `update_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录更新时间',

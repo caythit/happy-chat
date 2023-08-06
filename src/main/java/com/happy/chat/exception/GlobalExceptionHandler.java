@@ -12,13 +12,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.happy.chat.uitls.ApiResult;
 
+import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 全局异常处理器
+ */
 @ControllerAdvice
-public class ApiExceptionHandler {
+@Slf4j
+public class GlobalExceptionHandler {
 
     @ResponseBody
     @ExceptionHandler(ServiceException.class)
     public Map<String, Object> handleException(ServiceException exception) {
+        log.error("handleException", exception);
         return ApiResult.ofError(exception);
     }
 
@@ -27,6 +33,7 @@ public class ApiExceptionHandler {
     public Map<String, Object> handleAllException(HttpServletRequest request,
                                                   Throwable exception) {
         ServiceException serviceException = ServiceException.ofMessage(SERVER_ERROR.getErrCode(), SERVER_ERROR.getErrMsg());
+        log.error("handleAllException", exception);
         return ApiResult.ofError(serviceException);
     }
 }

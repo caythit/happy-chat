@@ -35,6 +35,7 @@ public class RobotApiHelper {
     public Map<String, Object> getRobotProfile(String robotId) {
         Robot robot = robotService.getRobotById(robotId);
         if (robot == null) {
+            log.error("getRobotProfile failed, robotId={}", robotId);
             perf(robotRegistry, prometheusName, prometheusHelp, "robot_get_failed", robotId);
             return ApiResult.ofFail(ErrorEnum.ROBOT_NOT_EXIST);
         }

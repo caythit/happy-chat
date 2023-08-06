@@ -32,9 +32,11 @@ import com.happy.chat.view.StartupConfigView;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/rest/h/test")
+@Slf4j
 public class TestController {
     @Autowired
     private CollectorRegistry registry;
@@ -52,11 +54,15 @@ public class TestController {
                 .register(registry);
         cp.labels("/test", "0").inc();
         result.put("data", String.format("hello, %s", userName));
+        log.info("test log...");
         return result;
     }
 
     @RequestMapping("/insertStartupConfig")
     public Map<String, Object> insertStartupConfig() {
+        log.info("test log ingo insertStartupConfig");
+        log.warn("test log warn insertStartupConfig");
+        log.error("test log error insertStartupConfig");
         Map<String, Object> result = ApiResult.ofSuccess();
         StartupConfigView startupConfigView = new StartupConfigView();
         startupConfigView.setLogoUrl("https://testlogo");

@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -68,7 +69,21 @@ public class RedisUtil {
      * @return 值
      */
     public String get(String key) {
-        return key == null ? null : myRedisClient.opsForValue().get(key);
+        if (StringUtils.isEmpty(key)) {
+            return null;
+        }
+        return  myRedisClient.opsForValue().get(key);
+    }
+
+    public String getOrDefault(String key, String defaultValue) {
+        if (StringUtils.isEmpty(key)) {
+            return defaultValue;
+        }
+        String value = myRedisClient.opsForValue().get(key);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+        return value;
     }
 
     /**

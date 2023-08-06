@@ -1,9 +1,6 @@
 package com.happy.chat.view;
 
-import static com.happy.chat.uitls.CommonUtils.formatMessageWithArgs;
-
 import com.happy.chat.domain.IceBreakWord;
-import com.happy.chat.domain.Robot;
 
 import lombok.Data;
 
@@ -11,10 +8,11 @@ import lombok.Data;
 public class IceBreakWordView {
     private String content;
 
-    public static IceBreakWordView convertIceBreakWord(IceBreakWord iceBreakWord, Robot robot) {
+    public static IceBreakWordView convertIceBreakWord(IceBreakWord iceBreakWord) {
         IceBreakWordView iceBreakWordView = new IceBreakWordView();
+        iceBreakWordView.setContent(iceBreakWordView.getContent());
         // format下，可能有占位符
-        iceBreakWordView.setContent(formatMessageWithArgs(iceBreakWord.getContent(), robot.getName(), robot.getCountry()));
+//        iceBreakWordView.setContent(formatMessageWithArgs(iceBreakWord.getContent(), robot.getName(), robot.getCountry()));
         return iceBreakWordView;
     }
 }

@@ -3,9 +3,9 @@ spring:
     name: Flirtopia
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/Flirtopia?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
-    username: root
-    password: 123456
+    url: jdbc:mysql://flirtopia-v1.cmalodbmmmwo.ap-southeast-2.rds.amazonaws.com:3306/Flirtopia?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
+    username: admin
+    password: liuweikai
   redis: #spring-configuration-metadata.json
     host: 127.0.0.1
     port: 6379
