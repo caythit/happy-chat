@@ -10,7 +10,6 @@ import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
 import static com.happy.chat.uitls.CacheKeyProvider.startupConfigKey;
-import static com.happy.chat.uitls.PrometheusUtils.perf;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +26,7 @@ import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.CommonUtils;
 import com.happy.chat.uitls.ObjectMapperUtils;
+import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
 import com.happy.chat.view.RobotInfoView;
 import com.happy.chat.view.StartupConfigView;
@@ -50,10 +50,17 @@ public class TestController {
     @Autowired
     private RedisUtil redisUtil;
 
+    @Autowired
+    private PrometheusUtils prometheusUtil;
+
+
     @RequestMapping("/test")
     public Map<String, Object> test(@RequestParam("userName") String userName) {
         Map<String, Object> result = ApiResult.ofSuccess();
-        perf(testRegistry, prometheusName, prometheusHelp, "testApi_recall");
+
+
+        prometheusUtil.perf("testApi_recall");
+        prometheusUtil.perf("chatApi_recall");
 
         result.put("data", String.format("hello, %s", userName));
         log.info("test log...");

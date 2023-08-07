@@ -1,7 +1,6 @@
 package com.happy.chat.helper;
 
 import static com.happy.chat.constants.Constant.DATA;
-import static com.happy.chat.uitls.PrometheusUtils.perf;
 
 import java.util.List;
 import java.util.Map;
@@ -19,22 +18,18 @@ import com.happy.chat.model.UserGetRequest;
 import com.happy.chat.service.RobotService;
 import com.happy.chat.service.UserService;
 import com.happy.chat.uitls.ApiResult;
+import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.view.FeedView;
 import com.happy.chat.view.RobotInfoView;
 
-import io.prometheus.client.CollectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 @Lazy
 @Component
 @Slf4j
 public class FeedApiHelper {
-
-    private final String prometheusName = "feed";
-    private final String prometheusHelp = "内容消费";
-
     @Autowired
-    private CollectorRegistry feedRegistry;
+    private PrometheusUtils prometheusUtil;
 
     @Autowired
     private UserService userService;
@@ -53,11 +48,11 @@ public class FeedApiHelper {
                     .userId(userId)
                     .build());
             if (user != null) {
-                perf(feedRegistry, prometheusName, prometheusHelp, "user_get_success", userId);
+                prometheusUtil.perf("feed_user_get_success");
                 feedView.setUserName(user.getUserName());
             } else {
                 log.error("feed user get failed, userId={}", userId);
-                perf(feedRegistry, prometheusName, prometheusHelp, "user_get_failed", userId);
+                prometheusUtil.perf("feed_user_get_failed");
             }
         }
         // 拿全部的robot 后面可能会分页
@@ -67,9 +62,9 @@ public class FeedApiHelper {
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(robotInfoViewList)) {
             log.error("feed robot get failed, userId={}", userId);
-            perf(feedRegistry, prometheusName, prometheusHelp, "robot_get_failed", userId);
+            prometheusUtil.perf("feed_robot_get_failed");
         } else {
-            perf(feedRegistry, prometheusName, prometheusHelp, "robot_get_success", userId);
+            prometheusUtil.perf("feed_robot_get_success");
             feedView.setRobotInfoViewList(robotInfoViewList);
         }
         result.put(DATA, feedView);

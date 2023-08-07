@@ -6,7 +6,6 @@ import static com.happy.chat.constants.Constant.DATA;
 import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_PAY_TIPS;
 import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_WARN_TIPS;
 import static com.happy.chat.constants.Constant.MESSAGE_ID_PREFIX;
-import static com.happy.chat.uitls.PrometheusUtils.perf;
 import static java.util.stream.Collectors.groupingBy;
 
 import java.util.ArrayList;
@@ -34,22 +33,19 @@ import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.CommonUtils;
 import com.happy.chat.uitls.ObjectMapperUtils;
+import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.view.FlirtopiaChatView;
 import com.happy.chat.view.IceBreakWordView;
 import com.happy.chat.view.UserChatListView;
 
-import io.prometheus.client.CollectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 @Lazy
 @Component
 @Slf4j
 public class ChatApiHelper {
-    private final String prometheusName = "chat";
-    private final String prometheusHelp = "chat_operation";
-
     @Autowired
-    private CollectorRegistry chatRegistry;
+    private PrometheusUtils prometheusUtil;
 
     @Autowired
     private ChatService chatService;
@@ -65,7 +61,7 @@ public class ChatApiHelper {
         List<IceBreakWord> iceBreakWords = chatService.getIceBreakWordsByRobot(robotId);
         if (CollectionUtils.isEmpty(iceBreakWords)) {
             log.error("getIceBreakWordsByRobot empty {}", robotId);
-            perf(chatRegistry, prometheusName, prometheusHelp, "ice_break_get_failed_by_empty", robotId);
+            prometheusUtil.perf("ice_break_get_failed_by_empty_" + robotId);
             return result;
         }
 
@@ -73,7 +69,7 @@ public class ChatApiHelper {
                 .map(IceBreakWordView::convertIceBreakWord)
                 .collect(Collectors.toList());
         result.put(DATA, iceBreakWordViews);
-        perf(chatRegistry, prometheusName, prometheusHelp, "ice_break_get_success", robotId);
+        prometheusUtil.perf("ice_break_get_success");
         return result;
     }
 
@@ -81,7 +77,7 @@ public class ChatApiHelper {
         List<FlirtopiaChat> flirtopiaChats = chatService.getUserHistoryChats(userId);
         if (CollectionUtils.isEmpty(flirtopiaChats)) {
             log.error("listUserChat empty {}", userId);
-            perf(chatRegistry, prometheusName, prometheusHelp, "user_history_chat_empty", userId);
+            prometheusUtil.perf("user_history_chat_empty_" + userId);
             return ApiResult.ofSuccess();
         }
 
@@ -130,7 +126,7 @@ public class ChatApiHelper {
                 .sorted(Comparator.comparing(UserChatListView::getLastMessageSendTime).reversed())
                 .collect(Collectors.toList());
         result.put(DATA, userChatListViews);
-        perf(chatRegistry, prometheusName, prometheusHelp, "user_history_chat_success", userId);
+        prometheusUtil.perf("user_history_chat_success");
         return result;
 
     }
@@ -139,7 +135,7 @@ public class ChatApiHelper {
         List<FlirtopiaChat> flirtopiaChats = chatService.getUserRobotHistoryChats(userId, robotId);
         if (CollectionUtils.isEmpty(flirtopiaChats)) {
             log.error("getUserRobotHistoryChats empty {} {} ", userId, robotId);
-            perf(chatRegistry, prometheusName, prometheusHelp, "user_robot_chat_empty", userId);
+            prometheusUtil.perf("user_robot_chat_empty_" + userId + "_" + robotId);
             return ApiResult.ofSuccess();
         }
         Map<String, Object> result = ApiResult.ofSuccess();
@@ -170,7 +166,7 @@ public class ChatApiHelper {
         int effectRow = chatService.insert(userRequestMessage);
         if (effectRow <= 0) {
             log.error("request insert db failed {} {} {}", userId, robotId, content);
-            perf(chatRegistry, prometheusName, prometheusHelp, "request_chat_failed_by_req_db_error", userId, robotId);
+            prometheusUtil.perf("request_chat_failed_by_req_db_error");
             return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
         }
 
@@ -180,7 +176,7 @@ public class ChatApiHelper {
         // 没拿到
         if (chatResponse == null) {
             log.error("response return null {} {} {}", userId, robotId, content);
-            perf(chatRegistry, prometheusName, prometheusHelp, "request_chat_failed_by_no_resp", userId, robotId);
+            prometheusUtil.perf("request_chat_failed_by_no_resp");
             return ApiResult.ofFail(ErrorEnum.CHAT_NO_RESP);
         }
 
@@ -210,7 +206,7 @@ public class ChatApiHelper {
 
         if (effectRow <= 0) {
             log.error("response insert db failed {} {} {}", userId, robotId, content);
-            perf(chatRegistry, prometheusName, prometheusHelp, "request_chat_resp_failed_by_db_error", userId, robotId);
+            prometheusUtil.perf("request_chat_resp_failed_by_db_error");
             return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
         }
         result.put(DATA, FlirtopiaChatView.convertChat(robotRespMessage));

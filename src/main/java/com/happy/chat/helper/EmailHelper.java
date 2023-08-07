@@ -2,7 +2,6 @@ package com.happy.chat.helper;
 
 import static com.happy.chat.uitls.CommonUtils.decryptPwd;
 import static com.happy.chat.uitls.CommonUtils.randomMailCode;
-import static com.happy.chat.uitls.PrometheusUtils.perf;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -27,20 +26,18 @@ import com.happy.chat.model.UserGetRequest;
 import com.happy.chat.service.UserService;
 import com.happy.chat.uitls.CacheKeyProvider;
 import com.happy.chat.uitls.CommonUtils;
+import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
 
-import io.prometheus.client.CollectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 @Lazy
 @Component
 @Slf4j
 public class EmailHelper {
-    private final String prometheusName = "email";
-    private final String prometheusHelp = "email_operation";
-
     @Autowired
-    private CollectorRegistry emailRegistry;
+    private PrometheusUtils prometheusUtil;
+
     @Value("${com.flirtopia.mail.user}")
     private String mailUser;
     @Value("${com.flirtopia.mail.salt}")
@@ -57,11 +54,13 @@ public class EmailHelper {
     private RedisUtil redisUtil;
 
     public ErrorEnum sendCode(String email, String subject, String text, boolean checkEmailBind, String purpose) {
+        String extra1 = String.format("%s_%s", email, purpose);
+
         // check email 格式
         boolean emailValid = CommonUtils.emailPatternValid(email);
         if (!emailValid) {
             log.error("sendEmail, emailInValid {}", email);
-            perf(emailRegistry, prometheusName, prometheusHelp, "send_email_failed_by_pattern_invalid", email, purpose);
+            prometheusUtil.perf("send_email_failed_by_pattern_invalid_" + extra1);
             return ErrorEnum.EMAIL_PATTERN_INVALID;
         }
 
@@ -72,7 +71,7 @@ public class EmailHelper {
                     .build());
             if (user == null) {
                 log.error("sendEmail, checkEmailBind user null {}", email);
-                perf(emailRegistry, prometheusName, prometheusHelp, "send_email_failed_by_not_exist", email, purpose);
+                prometheusUtil.perf("send_email_failed_by_not_exist_" + extra1);
                 return ErrorEnum.EMAIL_NOT_EXIST;
             }
         }
@@ -82,30 +81,32 @@ public class EmailHelper {
             redisUtil.set(CacheKeyProvider.mailCodeKey(email), code, 5, TimeUnit.MINUTES);
             text = text + "\n" + code;
             sendByTSL(mailUser, decryptPwd(mailPwdSalt, mailEncryPwd), mailFrom, email, subject, text);
-            perf(emailRegistry, prometheusName, prometheusHelp, "send_email_success", email, purpose);
+            prometheusUtil.perf("send_email_success_" + extra1);
             log.info("sendEmail success {} {}", email, code);
             return ErrorEnum.SUCCESS;
         } catch (Exception e) {
             log.error("sendEmail, exception {}", email, e);
-            perf(emailRegistry, prometheusName, prometheusHelp, "send_email_failed_by_exception", email, purpose);
+            prometheusUtil.perf("send_email_failed_by_exception_" + extra1);
             return ErrorEnum.EMAIL_SEND_CODE_FAIL;
         }
     }
 
     public ErrorEnum verifyCode(String email, String emailVerifyCode, String purpose) {
+        String extra1 = String.format("%s_%s", email, purpose);
+
         String code = redisUtil.get(CacheKeyProvider.mailCodeKey(email));
         if (StringUtils.isEmpty(code)) {
             log.error("verifyEmailCodeFailed, {} code {} expire", email, code);
-            perf(emailRegistry, prometheusName, prometheusHelp, "verify_email_failed_expire", email, purpose);
+            prometheusUtil.perf("verify_email_failed_expire_" + extra1);
             return ErrorEnum.EMAIL_VERIFY_CODE_EXPIRE;
         }
         if (!emailVerifyCode.equals(code)) {
             log.error("verifyEmailCodeFailed, {} {} code not matched", emailVerifyCode, code);
-            perf(emailRegistry, prometheusName, prometheusHelp, "verify_email_failed_error", email, purpose);
+            prometheusUtil.perf("verify_email_failed_error_" + extra1);
             return ErrorEnum.EMAIL_VERIFY_CODE_ERROR;
         }
         log.info("verify code success");
-        perf(emailRegistry, prometheusName, prometheusHelp, "verify_email_failed_success", email, purpose);
+        prometheusUtil.perf("verify_email_failed_success_" + extra1);
         return ErrorEnum.SUCCESS;
 
     }

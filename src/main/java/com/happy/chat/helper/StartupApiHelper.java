@@ -2,7 +2,6 @@ package com.happy.chat.helper;
 
 import static com.happy.chat.constants.Constant.USER_ID_PREFIX;
 import static com.happy.chat.uitls.CacheKeyProvider.startupConfigKey;
-import static com.happy.chat.uitls.PrometheusUtils.perf;
 
 import java.util.Map;
 
@@ -16,11 +15,11 @@ import com.happy.chat.service.UserService;
 import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.CommonUtils;
 import com.happy.chat.uitls.ObjectMapperUtils;
+import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
 import com.happy.chat.view.StartupConfigView;
 import com.happy.chat.view.StartupConfigView.RobotStartupView;
 
-import io.prometheus.client.CollectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 @Lazy
@@ -28,11 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StartupApiHelper {
 
-    private final String prometheusName = "startup";
-    private final String prometheusHelp = "启动配置";
-
     @Autowired
-    private CollectorRegistry startupRegistry;
+    private PrometheusUtils prometheusUtil;
 
     @Autowired
     private UserService userService;
@@ -47,10 +43,10 @@ public class StartupApiHelper {
 
         if (view == null) {
             log.error("getConfig failed, use mock view");
-            perf(startupRegistry, prometheusName, prometheusHelp, "mock_config");
+            prometheusUtil.perf("mock_config");
             view = mockView();
         } else {
-            perf(startupRegistry, prometheusName, prometheusHelp, "read_config");
+            prometheusUtil.perf("read_config");
         }
 
         // 生成dummy user
@@ -58,7 +54,7 @@ public class StartupApiHelper {
         int effectRow = userService.addDummyUser(dummyUserId);
         if (effectRow <= 0) {
             log.error("insert db dummy user failed {}", dummyUserId);
-            perf(startupRegistry, prometheusName, prometheusHelp, "add_dummy_user_failed");
+            prometheusUtil.perf("add_dummy_user_failed");
         }
         view.setDummyUid(dummyUserId);
         return view;
@@ -90,11 +86,11 @@ public class StartupApiHelper {
         if (effectRow <= 0) {
             // 打点
             log.error("recordUserPrefer failed {} {} {}", userId, preferRobotId, agePrefer);
-            perf(startupRegistry, prometheusName, prometheusHelp, "user_prefer_info_failed", userId, preferRobotId, agePrefer);
+            prometheusUtil.perf("user_prefer_info_failed");
             return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
         }
         // 打点
-        perf(startupRegistry, prometheusName, prometheusHelp, "user_prefer_info_success", userId, preferRobotId, agePrefer);
+        prometheusUtil.perf("user_prefer_info_success");
         return ApiResult.ofSuccess();
     }
 }

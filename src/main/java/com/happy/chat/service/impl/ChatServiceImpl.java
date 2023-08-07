@@ -11,7 +11,6 @@ import static com.happy.chat.uitls.CacheKeyProvider.userEnterChatgptAdvanceModel
 import static com.happy.chat.uitls.CacheKeyProvider.userEnterHappyModelLatestTimeKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userExitHappyModelExpireMillsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userGptPromptKey;
-import static com.happy.chat.uitls.PrometheusUtils.perf;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,20 +32,18 @@ import com.happy.chat.service.ChatService;
 import com.happy.chat.service.OpenAIService;
 import com.happy.chat.service.PaymentService;
 import com.happy.chat.uitls.OkHttpUtils;
+import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 
-import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.Counter;
 import lombok.extern.slf4j.Slf4j;
 
 @Lazy
 @Service
 @Slf4j
 public class ChatServiceImpl implements ChatService {
-
-    private final String prometheusName = "chat";
-    private final String prometheusHelp = "chat_operation";
 
     private final String defaultHappyModelExitExpireTime = "300000";
     private final String defaultEnterAdvanceModelHistoryChatSize = "10";
@@ -55,9 +52,6 @@ public class ChatServiceImpl implements ChatService {
     private final String normalVersionGpt = "normal";
 
     private final String advancedVersionGpt = "advanced";
-
-    @Autowired
-    private CollectorRegistry chatRegistry;
 
     @Autowired
     private FlirtopiaChatDao flirtopiaChatDao;
@@ -73,6 +67,12 @@ public class ChatServiceImpl implements ChatService {
 
     @Autowired
     private OkHttpUtils okHttpUtils;
+
+    @Autowired
+    private PrometheusUtils prometheusUtil;
+
+    @Autowired
+    private Counter chatPrometheusCounter;
 
     @Override
     public List<IceBreakWord> getIceBreakWordsByRobot(String robotId) {
@@ -135,7 +135,7 @@ public class ChatServiceImpl implements ChatService {
         // 敏感词 直接返回
         if (hasSensitiveWord) {
             log.warn("user request content contains sensitive {} {} {}", userId, robotId, content);
-            perf(chatRegistry, prometheusName, prometheusHelp, "chat_user_request_content_contains_sensitive", userId, robotId);
+            prometheusUtil.perf(chatPrometheusCounter, "chat_user_request_content_contains_sensitive");
             return getRobotDefaultResp();
         }
 
@@ -308,13 +308,13 @@ public class ChatServiceImpl implements ChatService {
         // 为空
         if (StringUtils.isEmpty(content)) {
             log.error("getRobotAlreadyPaidResp empty {} {} {}", userId, robotId, content);
-            perf(chatRegistry, prometheusName, prometheusHelp, "chat_ai_resp_empty", userId, robotId);
+            prometheusUtil.perf(chatPrometheusCounter, "chat_ai_resp_empty");
             return getRobotDefaultResp();
         }
         // 敏感词
         if (hasSensitiveWord(content)) {
             log.error("getRobotAlreadyPaidResp hasSensitiveWord {} {} {}", userId, robotId, content);
-            perf(chatRegistry, prometheusName, prometheusHelp, "chat_ai_resp_contains_sensitive", userId, robotId);
+            prometheusUtil.perf(chatPrometheusCounter, "chat_ai_resp_contains_sensitive");
             return getRobotDefaultResp();
         }
 
@@ -328,7 +328,7 @@ public class ChatServiceImpl implements ChatService {
         List<String> defaultResps = redisUtil.range(defaultRobotRespChatKey(), 0, -1);
         if (CollectionUtils.isEmpty(defaultResps)) {
             log.error("robot default resp empty");
-            perf(chatRegistry, prometheusName, prometheusHelp, "robot_default_resp_chat_empty");
+            prometheusUtil.perf(chatPrometheusCounter, "get_robot_default_resp_empty");
             // todo 默认的
             return ChatResponse.builder()
                     .content("I have no idea about it")
@@ -412,7 +412,7 @@ public class ChatServiceImpl implements ChatService {
         // 从缓存里取出robot对应的prompt，分成热情版/普通版。即role=system
         String prompt = redisUtil.get(userGptPromptKey(robotId, version));
         if (StringUtils.isEmpty(prompt)) {
-            perf(chatRegistry, prometheusName, prometheusHelp, "chat_robot_prompt_empty", robotId, version);
+            prometheusUtil.perf(chatPrometheusCounter, "get_robot_prompt_empty_" + robotId);
             return null;
         }
 
@@ -439,7 +439,7 @@ public class ChatServiceImpl implements ChatService {
         }
         List<String> sensitiveWords = redisUtil.range(chatSensitiveWordKey(), 0, -1);
         if (CollectionUtils.isEmpty(sensitiveWords)) {
-            perf(chatRegistry, prometheusName, prometheusHelp, "chat_sensitive_word_empty");
+            prometheusUtil.perf(chatPrometheusCounter, "get_chat_sensitive_keyword_empty");
             return false;
         }
         return sensitiveWords.stream()

@@ -1,7 +1,5 @@
 package com.happy.chat.service.impl;
 
-import static com.happy.chat.uitls.PrometheusUtils.perf;
-
 import java.util.HashMap;
 import java.util.List;
 
@@ -12,12 +10,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.happy.chat.service.OpenAIService;
+import com.happy.chat.uitls.PrometheusUtils;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
 
-import io.prometheus.client.CollectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 @Lazy
@@ -25,14 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OpenAIServiceImpl implements OpenAIService {
 
-    private final String prometheusName = "openAI";
-    private final String prometheusHelp = "openAI";
-
     @Value("${com.flirtopia.openai.token}")
     private String token;
 
     @Autowired
-    private CollectorRegistry openaiRegistry;
+    private PrometheusUtils prometheusUtil;
 
     /**
      * /v1/chat/completions: gpt-4, gpt-4-0314, gpt-4-32k, gpt-4-32k-0314, gpt-3.5-turbo, gpt-3.5-turbo-0301
@@ -59,7 +54,7 @@ public class OpenAIServiceImpl implements OpenAIService {
         ChatCompletionResult chatCompletionResult = service.createChatCompletion(chatCompletionRequest);
         if (chatCompletionResult == null || CollectionUtils.isEmpty(chatCompletionResult.getChoices())) {
             log.error("gpt return empty");
-            perf(openaiRegistry, prometheusName, prometheusHelp, "chat_gpt_return_empty");
+            prometheusUtil.perf("chat_open_ai_return_empty");
             return null;
         }
         return chatCompletionResult.getChoices().get(0).getMessage();
