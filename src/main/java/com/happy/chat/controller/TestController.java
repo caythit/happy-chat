@@ -69,22 +69,19 @@ public class TestController {
 
     @RequestMapping("/insertStartupConfig")
     public Map<String, Object> insertStartupConfig() {
-        log.info("test log ingo insertStartupConfig");
-        log.warn("test log warn insertStartupConfig");
-        log.error("test log error insertStartupConfig");
         Map<String, Object> result = ApiResult.ofSuccess();
         StartupConfigView startupConfigView = new StartupConfigView();
-        startupConfigView.setLogoUrl("https://testlogo");
-        startupConfigView.setAgeOptions(ImmutableList.of("18-25", "25-35", "35以上"));
+        startupConfigView.setLogoUrl("https://www.freepnglogos.com/uploads/spotify-logo-png/spotify-icon-marilyn-scott-0.png");
+        startupConfigView.setAgeOptions(ImmutableList.of("18-25", "25-35", "35+"));
         startupConfigView.setIntroduceText("Hello!\n who would you like\n to chat with?");
         startupConfigView.setWelcomeText("How are you \ntoday?");
         startupConfigView.setPymlRobots(ImmutableList.<StartupConfigView.RobotStartupView>builder()
-                .add(new StartupConfigView.RobotStartupView("1", "head1", "liu1"))
-                .add(new StartupConfigView.RobotStartupView("2", "head2", "liu2"))
-                .add(new StartupConfigView.RobotStartupView("3", "head3", "liu3"))
-                .add(new StartupConfigView.RobotStartupView("4", "head4", "liu4"))
-                .add(new StartupConfigView.RobotStartupView("5", "head5", "liu5"))
-                .add(new StartupConfigView.RobotStartupView("6", "head6", "liu6"))
+                .add(new StartupConfigView.RobotStartupView("rb_vMFrG5v0PrIZwPMfSjL3d", "https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg", "chen"))
+                .add(new StartupConfigView.RobotStartupView("rb_XXXX1", "https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg", "li"))
+                .add(new StartupConfigView.RobotStartupView("rb_XXXX2", "https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg", "xmxmcxmzxmcmzcmzxcmzxmcmxzc"))
+                .add(new StartupConfigView.RobotStartupView("rb_XXXX3", "https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg", "wang"))
+                .add(new StartupConfigView.RobotStartupView("rb_XXXX4", "https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg", "sun"))
+                .add(new StartupConfigView.RobotStartupView("rb_XXXX5", "https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg", "lisdk"))
                 .build());
 
         redisUtil.set(startupConfigKey(), ObjectMapperUtils.toJSON(startupConfigView));

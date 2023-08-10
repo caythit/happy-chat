@@ -1,20 +1,35 @@
 需要提前准备好的数据：
+写入DB数据：
+    AI 基础信息
+        insert into robot_info (robot_id,head_url,cover_url,bg_url, name,sex,age,city,country,extra_info,create_time,update_time) values('rb_vMFrG5v0PrIZwPMfSjL3d', 'https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg', 'https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg', 'https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg', '陈倩', 2, 21, 'beijing', 'china', '{"work":"doctor","aboutMe":"I hava a dream","interest":"travel"}');
+    AI 破冰文案
+        insert into robot_ice_break_word
+    AI prompt
+        insert into robot_prompt
 
-1、AI 基础信息 写入DB
-2、AI 破冰文案 写入DB
-3、冷启动文案 写入redis
-4、聊天兜底回复 多条 所有AI公用，写入redis
-5、聊天敏感词 多条 所有AI公用，写入redis
-6、聊天多模型请求触发消息条数 默认10条 所有AI公用，写入redis
-7、聊天快乐模型警报阈值次数 默认3次 所有AI公用，写入redis
-8、聊天促支付外显文案 多条 所有AI公用，写入redis
-9、聊天支付完成外显文案 多条 所有AI公用，写入redis
-10、聊天快乐模型警报未达到阈值 系统提示文案 单条 所有AI公用，写入redis
-11、用户最后一次进入快乐模型的时间，用作退场机制
-12、用户进入快乐模型过期时间，用作退场机制，当前时间-11超过了12，那么就是退场
+写入redis：
+    冷启动数据。set flirtopia:startConfig "xxxx"
+    聊天兜底回复，多条，所有AI公用。lpush flirtopia:defaultRobotRespChat "xxxx"
+    聊天敏感词，多条，所有AI公用。lpush flirtopia:chatSensitiveWord "xxxx"
+    聊天促支付外显文案 多条 所有AI公用。lpush flirtopia:chatUnPayWord "xxxx"
+    聊天支付完成外显文案 多条 所有AI公用。lpush flirtopia:chatFinishPayWord "xxxx"
 
-10、邮箱验证 subject和text
-11、
+    聊天请求热情版gpt触发消息条数，默认10条，所有AI公用。set flirtopia:userEnterChatgptAdvanceModelThreshold "10"
+    聊天普通版gpt警报阈值次数 默认3次 所有AI公用。set flirtopia:userChatgptWarnMaxCount "3"
+    聊天普通版gpt警报未达到阈值时系统提示文案，单条，所有AI公用。set flirtopia:chatWarnWordKey "xxxx"
+    用户进入快乐模型过期时间，用作退场机制，逻辑="当前时间减去最后一次进入快乐模型时间是否超过过期时间"，默认5分钟。set flirtopia:userExitHappyModelExpireMills "300000"
+
+待确认/硬编码数据：
+    发送邮箱时的subject和text。
+    企业邮箱，账户和密码
+    chatgpt token
+    图片上传url
+    加监控
+    加日志
+    支付
 
 
-加监控、加日志
+不用提前准备的redis数据：
+    记录用户最后一次进入快乐模型的时间，用作退场机制。聊天时记录。userEnterHappyModelLatestTime:%userId:%robotId
+    统计用户聊天普通版gpt警报次数，聊天时记录。userChatgptWarn:%userId:%robotId
+    邮箱验证码。mailCode:%email
