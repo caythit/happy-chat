@@ -82,11 +82,12 @@ public class UserDao {
 
     public int insertForDummy(String userId) {
         String sql = "insert into " + TABLE_NAME
-                + " (dummy_user_id) "
-                + " values (:userId) on duplicate key update update_time = :updateTime";
+                + " (dummy_user_id, create_time, update_time) "
+                + " values (:userId, :createTime, :updateTime) on duplicate key update update_time = :updateTime";
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         params.addValue("userId", userId);
+        params.addValue("createTime", System.currentTimeMillis());
         params.addValue("updateTime", System.currentTimeMillis());
         return jdbcTemplate.update(sql, params);
     }
