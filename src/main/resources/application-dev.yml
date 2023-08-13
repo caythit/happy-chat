@@ -36,4 +36,7 @@ com:
       encry-pwd: xxxx
       from: flortopia_service@gmail.com
     openai:
-        token: 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
+        token: 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
+stripe:
+  apiKey: xxxx
+  webhookSecret: xxx
