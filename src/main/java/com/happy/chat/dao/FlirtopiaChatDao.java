@@ -58,7 +58,7 @@ public class FlirtopiaChatDao {
         params.addValue("messageFrom", chat.getMessageFrom());
         params.addValue("content", chat.getContent());
 
-        params.addValue("extraInfo", StringUtils.isNotEmpty(chat.getExtraInfo()) ? chat.getExtraInfo() : "");
+        params.addValue("extraInfo", chat.getExtraInfo());
 
         params.addValue("createTime", System.currentTimeMillis());
         params.addValue("updateTime", System.currentTimeMillis());
@@ -83,9 +83,8 @@ public class FlirtopiaChatDao {
                             params.addValue("messageFrom", chat.getMessageFrom());
                             params.addValue("content", chat.getContent());
 
-                            if (StringUtils.isNotEmpty(chat.getExtraInfo())) {
-                                params.addValue("extraInfo", chat.getExtraInfo());
-                            }
+                            params.addValue("extraInfo", chat.getExtraInfo());
+
 
                             params.addValue("createTime", System.currentTimeMillis());
                             params.addValue("updateTime", System.currentTimeMillis());

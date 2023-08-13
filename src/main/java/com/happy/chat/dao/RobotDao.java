@@ -76,9 +76,7 @@ public class RobotDao {
         params.addValue("city", robot.getCity());
         params.addValue("country", robot.getCountry());
 
-        if (StringUtils.isNotEmpty(robot.getExtraInfo())) {
-            params.addValue("extraInfo", robot.getExtraInfo());
-        }
+        params.addValue("extraInfo", StringUtils.isNotEmpty(robot.getExtraInfo()) ? robot.getExtraInfo() : "");
 
         params.addValue("createTime", System.currentTimeMillis());
         params.addValue("updateTime", System.currentTimeMillis());

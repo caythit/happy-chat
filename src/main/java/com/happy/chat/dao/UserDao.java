@@ -77,16 +77,10 @@ public class UserDao {
         params.addValue("userId", user.getUserId());
         params.addValue("userName", user.getUserName());
         params.addValue("userPwd", user.getUserPwd());
-        if (StringUtils.isNotEmpty(user.getEmail())) {
-            params.addValue("email", user.getEmail());
-        }
-        if (StringUtils.isNotEmpty(user.getPhone())) {
-            params.addValue("phone", user.getPhone());
-        }
+        params.addValue("email", StringUtils.isNotEmpty(user.getEmail()) ? user.getEmail() : "");
+        params.addValue("phone", StringUtils.isNotEmpty(user.getPhone()) ? user.getPhone() : "");
         params.addValue("pwdSalt", user.getPwdSalt());
-        if (StringUtils.isNotEmpty(user.getExtraInfo())) {
-            params.addValue("extraInfo", user.getExtraInfo());
-        }
+        params.addValue("extraInfo", StringUtils.isNotEmpty(user.getExtraInfo()) ? user.getExtraInfo() : "");
 
         params.addValue("createTime", System.currentTimeMillis());
         params.addValue("updateTime", System.currentTimeMillis());
