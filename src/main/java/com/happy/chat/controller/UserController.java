@@ -23,9 +23,11 @@ import com.happy.chat.helper.UserApiHelper;
 import com.happy.chat.uitls.ApiResult;
 
 import io.prometheus.client.CollectorRegistry;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/rest/h/user")
+@Slf4j
 public class UserController {
 
     private final String prometheusName = "user_api";
@@ -77,6 +79,7 @@ public class UserController {
     @RequestMapping("/modifyUserName")
     public Map<String, Object> modifyUserName(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                               @RequestParam("userName") String userName) {
+        log.info("logout, userId={}, userName={}", userId, userName);
         return useHelper.modifyUserName(userId, userName);
     }
 
@@ -85,6 +88,7 @@ public class UserController {
     public Map<String, Object> logout(HttpServletResponse response,
                                       @CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                       @RequestParam(value = "ud") String dummyUid) {
+        log.info("logout, userId={}, dummyUserId={}", userId, dummyUid);
         // 将Cookie的值设置为null
         Cookie cookie = new Cookie(COOKIE_SESSION_ID, null);
         //将`Max-Age`设置为0
