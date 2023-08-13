@@ -30,7 +30,7 @@ public class FlirtopiaChatDao {
 
 
     public List<IceBreakWord> getRobotIceBreakWords(String robotId) {
-        String sql = format("select * from %s where robot_id = :robotId)", ICE_BREAK_WORD_TABLE_NAME);
+        String sql = format("select * from %s where robot_id = :robotId", ICE_BREAK_WORD_TABLE_NAME);
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("robotId", robotId);
 
@@ -38,7 +38,7 @@ public class FlirtopiaChatDao {
     }
 
     public List<FlirtopiaChat> getUserChatList(String userId) {
-        String sql = format("select * from %s where user_id = :userId)", CHAT_TABLE_NAME);
+        String sql = format("select * from %s where user_id = :userId", CHAT_TABLE_NAME);
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("userId", userId);
         return jdbcTemplate.query(sql, params, chatRowMapper);
@@ -97,7 +97,7 @@ public class FlirtopiaChatDao {
     }
 
     public List<FlirtopiaChat> getUserRobotChats(String userId, String robotId) {
-        String sql = format("select * from %s where user_id = :userId and robot_id = :robotId)", CHAT_TABLE_NAME);
+        String sql = format("select * from %s where user_id = :userId and robot_id = :robotId", CHAT_TABLE_NAME);
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("userId", userId);
         params.addValue("robotId", robotId);

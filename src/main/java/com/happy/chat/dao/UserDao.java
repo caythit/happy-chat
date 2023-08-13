@@ -94,7 +94,7 @@ public class UserDao {
 
     public int updateUserPreferInfo(String userId, String preferInfo) {
         String sql = "update " + TABLE_NAME
-                + " set user_prefer_info = :preferInfo where user_id = :userId";
+                + " set user_prefer_info = :preferInfo where dummy_user_id = :userId";
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         params.addValue("preferInfo", preferInfo);
