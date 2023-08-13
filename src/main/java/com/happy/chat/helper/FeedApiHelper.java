@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import com.happy.chat.domain.Robot;
 import com.happy.chat.domain.User;
-import com.happy.chat.model.UserGetRequest;
 import com.happy.chat.service.RobotService;
 import com.happy.chat.service.UserService;
 import com.happy.chat.uitls.ApiResult;
@@ -42,11 +41,8 @@ public class FeedApiHelper {
 
         FeedView feedView = new FeedView();
         // 拿名字
-        User user = userService.getUser(UserGetRequest.builder()
-                .userId(dummyUid)
-                .build());
-        if (user != null) {
-            prometheusUtil.perf("feed_user_get_success");
+        User user = userService.getDummyUser(dummyUid);
+        if (user != null && StringUtils.isNotEmpty(user.getUserName())) {
             feedView.setUserName(user.getUserName());
         }
         List<RobotInfoView> robotInfoViewList = new ArrayList<>();

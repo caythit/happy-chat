@@ -5,6 +5,7 @@ import com.happy.chat.model.UserGetRequest;
 
 public interface UserService {
     User getUser(UserGetRequest userGetRequest);
+    User getDummyUser(String dummyUid);
 
     int addUser(User user);
 

@@ -54,6 +54,21 @@ public class UserDao {
         return null;
     }
 
+    public User getDummyUserById(String userId) {
+        StringBuilder sqlBuilder = new StringBuilder("select ").append(ALL_FIELD).append(" from ")
+                .append(TABLE_NAME)
+                .append(" where dummy_user_id = :userId");
+
+        MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("userId", userId);
+
+        List<User> uses = jdbcTemplate.query(sqlBuilder.toString(), params, userRowMapper);
+        if (CollectionUtils.isNotEmpty(uses)) {
+            return uses.get(0);
+        }
+        return null;
+    }
+
     public int insert(User user) {
         String sql = "insert into " + TABLE_NAME
                 + " (user_id, user_name, user_pwd,email, phone, pwd_salt, extra_info, create_time, update_time) "

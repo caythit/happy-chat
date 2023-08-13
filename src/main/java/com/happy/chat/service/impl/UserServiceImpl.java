@@ -28,6 +28,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getDummyUser(String dummyUid) {
+        return userDao.getDummyUserById(dummyUid);
+    }
+
+    @Override
     public int addUser(User user) {
         return userDao.insert(user);
     }
