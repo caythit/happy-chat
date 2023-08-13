@@ -17,6 +17,7 @@ import com.happy.chat.domain.User;
 import com.happy.chat.service.RobotService;
 import com.happy.chat.service.UserService;
 import com.happy.chat.uitls.ApiResult;
+import com.happy.chat.uitls.ObjectMapperUtils;
 import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.view.FeedView;
 import com.happy.chat.view.RobotInfoView;
@@ -72,8 +73,8 @@ public class FeedApiHelper {
     }
 
     private RobotInfoView getUserPreferRobot(User user) {
+        log.info("user = {}", ObjectMapperUtils.toJSON(user));
         if (user == null || StringUtils.isEmpty(user.getUserPreferInfo()) || !user.getUserPreferInfo().contains(":")) {
-            log.warn("------");
             return null;
         }
         String robotId = user.getUserPreferInfo().split(":")[0];
