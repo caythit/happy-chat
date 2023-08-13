@@ -48,7 +48,7 @@ public class FlirtopiaChatDao {
         String sql = "insert into " + CHAT_TABLE_NAME
                 + " (user_id, robot_id, message_id,message_type, message_from, content, extra_info, create_time, update_time) "
                 + " values (:userId, :robotId, :messageId, :messageType, :messageFrom, :content, :extraInfo, :createTime, :updateTime) "
-                + " on duplicate key update modify_time = :modifyTime";
+                + " on duplicate key update update_time = :updateTime";
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         params.addValue("userId", chat.getUserId());
@@ -69,7 +69,7 @@ public class FlirtopiaChatDao {
         String sql = "INSERT ignore INTO " + CHAT_TABLE_NAME
                 + " (user_id, robot_id, message_id,message_type, message_from, content, extra_info, create_time, update_time) "
                 + " values (:userId, :robotId, :messageId, :messageType, :messageFrom, :content, :extraInfo, :createTime, :updateTime) "
-                + " on duplicate key update modify_time = :modifyTime";
+                + " on duplicate key update update_time = :updateTime";
 
         return jdbcTemplate.batchUpdate(sql,
                 chats.stream()
