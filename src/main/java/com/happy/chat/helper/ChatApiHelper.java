@@ -134,8 +134,7 @@ public class ChatApiHelper {
     public Map<String, Object> getUserRobotHistoryChats(String userId, String robotId) {
         List<FlirtopiaChat> flirtopiaChats = chatService.getUserRobotHistoryChats(userId, robotId);
         if (CollectionUtils.isEmpty(flirtopiaChats)) {
-            log.error("getUserRobotHistoryChats empty {} {} ", userId, robotId);
-            prometheusUtil.perf("user_robot_chat_empty_" + userId + "_" + robotId);
+            log.warn("getUserRobotHistoryChats empty {} {} ", userId, robotId);
             return ApiResult.ofSuccess();
         }
         Map<String, Object> result = ApiResult.ofSuccess();

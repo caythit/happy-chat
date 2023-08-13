@@ -5,7 +5,6 @@ import static com.happy.chat.constants.Constant.DATA;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,9 +48,6 @@ public class FeedApiHelper {
         if (user != null) {
             prometheusUtil.perf("feed_user_get_success");
             feedView.setUserName(user.getUserName());
-        } else {
-            log.error("feed user get failed, userId={}", dummyUid);
-            prometheusUtil.perf("feed_user_get_failed");
         }
         List<RobotInfoView> robotInfoViewList = new ArrayList<>();
         // 先把用户的prefer robot强插到第一位置
