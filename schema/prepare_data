@@ -1,9 +1,9 @@
 需要提前准备好的数据：
 写入DB数据：
     AI 基础信息
-        insert into robot_info (robot_id,head_url,cover_url,bg_url, name,sex,age,city,country,extra_info,create_time,update_time) values('rb_vMFrG5v0PrIZwPMfSjL3d', 'https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg', 'https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg', 'https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg', '陈倩', 2, 21, 'beijing', 'china', '{"work":"doctor","aboutMe":"I hava a dream","interest":"travel"}');
+        insert into robot_info (robot_id,head_url,cover_url,bg_url, name,sex,age,city,country,extra_info,create_time,update_time) values('rb_vMFrG5v0PrIZwPMfSjL3d', 'https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg', 'https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg', 'https://c-ssl.duitang.com/uploads/blog/202207/29/20220729075441_ecced.jpeg', '陈倩', 2, 21, 'beijing', 'china', '{"work":"doctor","aboutMe":"I hava a dream","interest":"travel"}', 1691913588124, 1691913588124);
     AI 破冰文案
-        insert into robot_ice_break_word
+        insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('usr_JkzKcRQw29O7h_kDyo91B', 'come to join me!', 1691913588124, 1691913588124), ('usr_JkzKcRQw29O7h_kDyo91B', 'Do you want me?', 1691913588124, 1691913588124);
     AI prompt
         insert into robot_prompt
 

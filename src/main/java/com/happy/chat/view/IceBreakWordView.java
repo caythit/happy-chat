@@ -10,7 +10,7 @@ public class IceBreakWordView {
 
     public static IceBreakWordView convertIceBreakWord(IceBreakWord iceBreakWord) {
         IceBreakWordView iceBreakWordView = new IceBreakWordView();
-        iceBreakWordView.setContent(iceBreakWordView.getContent());
+        iceBreakWordView.setContent(iceBreakWord.getContent());
         // format下，可能有占位符
 //        iceBreakWordView.setContent(formatMessageWithArgs(iceBreakWord.getContent(), robot.getName(), robot.getCountry()));
         return iceBreakWordView;

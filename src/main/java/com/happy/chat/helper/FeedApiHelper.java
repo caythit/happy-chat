@@ -73,7 +73,6 @@ public class FeedApiHelper {
     }
 
     private RobotInfoView getUserPreferRobot(User user) {
-        log.info("user = {}", ObjectMapperUtils.toJSON(user));
         if (user == null || StringUtils.isEmpty(user.getUserPreferInfo()) || !user.getUserPreferInfo().contains(":")) {
             return null;
         }
