@@ -5,6 +5,7 @@ import static com.happy.chat.uitls.CacheKeyProvider.startupConfigKey;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -81,6 +82,10 @@ public class StartupApiHelper {
 
 
     public Map<String, Object> recordUserPrefer(String userId, String preferRobotId, String agePrefer) {
+        if (StringUtils.isEmpty(preferRobotId) && StringUtils.isEmpty(agePrefer)) {
+            log.warn("preferRobotId and agePrefer empty");
+            return ApiResult.ofSuccess();
+        }
         String preferInfo = String.format("%s:%s", preferRobotId, agePrefer);
         int effectRow = userService.updateUserPreferInfo(userId, preferInfo);
         if (effectRow <= 0) {

@@ -84,6 +84,7 @@ public class FeedApiHelper {
         if (robot == null) {
             log.error("feed robot get failed, robotId={}", robotId);
             prometheusUtil.perf("feed_prefer_robot_get_failed");
+            return null;
         }
         return RobotInfoView.convertRobot(robot);
     }
