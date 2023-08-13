@@ -9,6 +9,7 @@ import static com.happy.chat.uitls.CacheKeyProvider.chatFinishPayWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
+import static com.happy.chat.uitls.CacheKeyProvider.robotGptPromptKey;
 import static com.happy.chat.uitls.CacheKeyProvider.startupConfigKey;
 
 import java.util.HashMap;
@@ -63,6 +64,8 @@ public class TestController {
         prometheusUtil.perf("chatApi_recall");
 
         result.put("data", String.format("hello, %s", userName));
+        result.put("prompt", redisUtil.get(robotGptPromptKey("rb_XXXX5", "advanced")));
+
         log.info("test log...");
         log.warn("test log...");
         log.error("test log...");
