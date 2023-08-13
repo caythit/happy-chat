@@ -73,6 +73,7 @@ public class FeedApiHelper {
 
     private RobotInfoView getUserPreferRobot(User user) {
         if (user == null || StringUtils.isEmpty(user.getUserPreferInfo()) || !user.getUserPreferInfo().contains(":")) {
+            log.warn("------");
             return null;
         }
         String robotId = user.getUserPreferInfo().split(":")[0];
