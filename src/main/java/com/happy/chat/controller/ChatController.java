@@ -29,16 +29,18 @@ public class ChatController {
 
     @RequestMapping("/request")
     public Map<String, Object> request(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
+                                       @RequestParam(value = "ud", required = false) String dummyUid,
                                        @RequestParam("robotId") String robotId,
                                        @RequestParam("content") String content) {
-        log.info("request = {} {} {}", userId, robotId, content);
-        return chatApiHelper.request(userId, robotId, content);
+        log.info("request = {} {} {} {}", userId, dummyUid, robotId, content);
+        // todo 改成cookie userId
+        return chatApiHelper.request(dummyUid, robotId, content);
     }
 
     // chat列表 只展示最新一条消息
     @RequestMapping("/list")
     public Map<String, Object> list(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
-                                    @RequestParam(value = "ud") String dummyUid) {
+                                    @RequestParam(value = "ud", required = false) String dummyUid) {
         // todo 改成cookie userId
         return chatApiHelper.listUserChat(dummyUid);
     }
@@ -46,7 +48,7 @@ public class ChatController {
     // 和robot的历史聊天信息
     @RequestMapping("/robot/history")
     public Map<String, Object> historyChat(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
-                                           @RequestParam(value = "ud") String dummyUid,
+                                           @RequestParam(value = "ud", required = false) String dummyUid,
                                            @RequestParam("robotId") String robotId) {
         // todo 改成cookie userId
         return chatApiHelper.getUserRobotHistoryChats(dummyUid, robotId);
