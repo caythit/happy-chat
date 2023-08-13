@@ -26,13 +26,11 @@ public class UserDao {
     private final RowMapper<User> userRowMapper = new BeanPropertyRowMapper<>(User.class);
 
     public User getUserByEmail(String email) {
-        StringBuilder sqlBuilder = new StringBuilder("select ").append(ALL_FIELD).append(" from ")
-                .append(TABLE_NAME)
-                .append(" where email = :email");
+        String sql = "select " + ALL_FIELD + " from " + TABLE_NAME + " where email = :email";
 
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("email", email);
-        List<User> uses = jdbcTemplate.query(sqlBuilder.toString(), params, userRowMapper);
+        List<User> uses = jdbcTemplate.query(sql, params, userRowMapper);
         if (CollectionUtils.isNotEmpty(uses)) {
             return uses.get(0);
         }
