@@ -58,10 +58,9 @@ public class UserController {
     @RequestMapping("/registerByEmail")
     public Map<String, Object> registerByEmail(HttpServletResponse response,
                                                @RequestParam(value = "ud") String dummyUid,
-                                               @RequestParam("userName") String userName,
                                                @RequestParam("email") String email,
                                                @RequestParam("password") String password) {
-        Map<String, Object> res = useHelper.doRegisterByEmail(dummyUid, userName, email, password);
+        Map<String, Object> res = useHelper.doRegisterByEmail(dummyUid, email, password);
         // 成功设置cookie
         if (res.get(ERROR_CODE).equals(ErrorEnum.SUCCESS.getErrCode())) {
             User user = (User) res.get(DATA);
@@ -73,6 +72,12 @@ public class UserController {
             response.addCookie(cookie);
         }
         return res;
+    }
+
+    @RequestMapping("/modifyUserName")
+    public Map<String, Object> modifyUserName(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
+                                              @RequestParam("userName") String userName) {
+        return useHelper.modifyUserName(userId, userName);
     }
 
     @LoginRequired

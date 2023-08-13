@@ -52,4 +52,9 @@ public class UserServiceImpl implements UserService {
     public int rebindEmail(String userId, String email) {
         return userDao.updateUserEmail(userId, email);
     }
+
+    @Override
+    public int modifyUserName(String userId, String userName) {
+        return userDao.updateUserName(userId, userName);
+    }
 }

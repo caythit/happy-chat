@@ -121,4 +121,14 @@ public class UserDao {
         params.addValue("userId", userId);
         return jdbcTemplate.update(sql, params);
     }
+
+    public int updateUserName(String userId, String userName) {
+        String sql = "update " + TABLE_NAME
+                + " set user_name = :userName where user_id = :userId";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+
+        params.addValue("userName", userName);
+        params.addValue("userId", userId);
+        return jdbcTemplate.update(sql, params);
+    }
 }

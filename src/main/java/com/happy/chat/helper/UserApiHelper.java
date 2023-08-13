@@ -64,12 +64,12 @@ public class UserApiHelper {
         return result;
     }
 
-    public Map<String, Object> doRegisterByEmail(String dummyUserId, String userName, String email, String password) {
+    public Map<String, Object> doRegisterByEmail(String dummyUserId, String email, String password) {
         Map<String, Object> result = new HashMap<>();
 
-        ErrorEnum registerErr = registerVerify(userName, password);
+        ErrorEnum registerErr = registerVerify(email, password);
         if (registerErr != ErrorEnum.SUCCESS) {
-            log.error("doRegisterByEmail verify failed {} {}", userName, password);
+            log.error("doRegisterByEmail verify failed {} {}", email, password);
             return ApiResult.ofFail(registerErr);
         }
         // 加密
@@ -79,7 +79,7 @@ public class UserApiHelper {
         User user = new User();
         // 不用生成uid，使用dummy uid覆盖即可
         user.setUserId(dummyUserId);
-        user.setUserName(StringUtils.isEmpty(userName) ? defaultUserName() : userName);
+        user.setUserName(defaultUserName());
         user.setUserPwd(encryptPwd);
         user.setEmail(email);
         user.setPwdSalt(salt);
@@ -182,5 +182,17 @@ public class UserApiHelper {
         }
         prometheusUtil.perf("reset_password_success");
         return ApiResult.ofSuccess();
+    }
+
+    public Map<String, Object> modifyUserName(String userId, String userName) {
+        int effectRow = userService.modifyUserName(userId, userName);
+        if (effectRow <= 0) {
+            log.error("modifyUserName insert db failed {}", userName);
+            prometheusUtil.perf("modify_user_name_failed_by_db_error");
+            return ApiResult.ofFail(ErrorEnum.REBIND_EMAIL_FAIL);
+        }
+        prometheusUtil.perf("modify_user_name_success");
+        return ApiResult.ofSuccess();
+
     }
 }

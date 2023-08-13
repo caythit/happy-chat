@@ -15,5 +15,6 @@ public interface UserService {
     int resetUserPwd(String userId, String encryptPwd);
 
     int rebindEmail(String userId, String email);
+    int modifyUserName(String userId, String userName);
 
 }
