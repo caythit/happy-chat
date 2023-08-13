@@ -26,7 +26,7 @@ public class StartupController {
      * 兴趣选择
      * @return
      */
-    @PostMapping("/selectPrefer")
+    @RequestMapping("/selectPrefer")
     public Map<String, Object> selectPrefer(@RequestParam(value = "ud") String dummyUid,
                                             @RequestParam(value = "robotPrefer", defaultValue = "") String preferRobotId,
                                             @RequestParam(value = "agePrefer", defaultValue = "") String agePrefer) {
