@@ -2,6 +2,7 @@ package com.happy.chat.helper;
 
 import static com.happy.chat.constants.Constant.DATA;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,31 +38,38 @@ public class FeedApiHelper {
     @Autowired
     private RobotService robotService;
 
-    public Map<String, Object> foryou(String userId, int size) {
+    public Map<String, Object> foryou(String dummyUid, int size) {
         Map<String, Object> result = ApiResult.ofSuccess();
 
         FeedView feedView = new FeedView();
-        // 登录过
-        if (StringUtils.isNotEmpty(userId)) {
-            // 拿名字
-            User user = userService.getUser(UserGetRequest.builder()
-                    .userId(userId)
-                    .build());
-            if (user != null) {
-                prometheusUtil.perf("feed_user_get_success");
-                feedView.setUserName(user.getUserName());
-            } else {
-                log.error("feed user get failed, userId={}", userId);
-                prometheusUtil.perf("feed_user_get_failed");
-            }
+        // 拿名字
+        User user = userService.getUser(UserGetRequest.builder()
+                .userId(dummyUid)
+                .build());
+        if (user != null) {
+            prometheusUtil.perf("feed_user_get_success");
+            feedView.setUserName(user.getUserName());
+        } else {
+            log.error("feed user get failed, userId={}", dummyUid);
+            prometheusUtil.perf("feed_user_get_failed");
+        }
+        List<RobotInfoView> robotInfoViewList = new ArrayList<>();
+        // 先把用户的prefer robot强插到第一位置
+        RobotInfoView preferRobot = getUserPreferRobot(user);
+        if (preferRobot != null) {
+            robotInfoViewList.add(preferRobot);
         }
         // 拿全部的robot 后面可能会分页
         List<Robot> robotList = robotService.getAllRobot();
-        List<RobotInfoView> robotInfoViewList = robotList.stream()
-                .map(RobotInfoView::convertRobot)
-                .collect(Collectors.toList());
+        robotList.forEach(robot -> {
+            // 已经有了 直接跳过
+            if (preferRobot != null && robot.getRobotId().equals(preferRobot.getRobotId())) {
+                return;
+            }
+            robotInfoViewList.add(RobotInfoView.convertRobot(robot));
+        });
         if (CollectionUtils.isEmpty(robotInfoViewList)) {
-            log.error("feed robot get failed, userId={}", userId);
+            log.error("feed robot get failed, userId={}", dummyUid);
             prometheusUtil.perf("feed_robot_get_failed");
         } else {
             prometheusUtil.perf("feed_robot_get_success");
@@ -69,5 +77,18 @@ public class FeedApiHelper {
         }
         result.put(DATA, feedView);
         return result;
+    }
+
+    private RobotInfoView getUserPreferRobot(User user) {
+        if (user == null || StringUtils.isEmpty(user.getUserPreferInfo()) || user.getUserPreferInfo().contains(":")) {
+            return null;
+        }
+        String robotId = user.getUserPreferInfo().split(":")[0];
+        Robot robot = robotService.getRobotById(robotId);
+        if (robot == null) {
+            log.error("feed robot get failed, robotId={}", robotId);
+            prometheusUtil.perf("feed_prefer_robot_get_failed");
+        }
+        return RobotInfoView.convertRobot(robot);
     }
 }

@@ -29,8 +29,9 @@ public class FeedController {
      */
     @RequestMapping("/foryou")
     public Map<String, Object> foryou(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
-                                      @RequestParam(value = "size", defaultValue = "100") int size) {
-        log.info("foryou {}", userId);
-        return feedApiHelper.foryou(userId, size);
+                                      @RequestParam(value = "ud") String dummyUid,
+                                      @RequestParam(value = "size", required = false, defaultValue = "100") int size) {
+        log.info("foryou {} {}", dummyUid, userId);
+        return feedApiHelper.foryou(dummyUid, size);
     }
 }
