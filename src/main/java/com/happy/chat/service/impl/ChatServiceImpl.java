@@ -307,13 +307,13 @@ public class ChatServiceImpl implements ChatService {
     private ChatResponse buildChatResponse(String userId, String robotId, String content) {
         // 为空
         if (StringUtils.isEmpty(content)) {
-            log.error("getRobotAlreadyPaidResp empty {} {} {}", userId, robotId, content);
+            log.error("buildChatResponse empty {} {} {}", userId, robotId, content);
             prometheusUtil.perf(chatPrometheusCounter, "chat_ai_resp_empty");
             return getRobotDefaultResp();
         }
         // 敏感词
         if (hasSensitiveWord(content)) {
-            log.error("getRobotAlreadyPaidResp hasSensitiveWord {} {} {}", userId, robotId, content);
+            log.error("buildChatResponse hasSensitiveWord {} {} {}", userId, robotId, content);
             prometheusUtil.perf(chatPrometheusCounter, "chat_ai_resp_contains_sensitive");
             return getRobotDefaultResp();
         }

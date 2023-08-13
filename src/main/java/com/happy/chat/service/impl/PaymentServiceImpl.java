@@ -1,5 +1,6 @@
 package com.happy.chat.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.context.annotation.Lazy;
@@ -15,7 +16,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<String> getUserSubscribeRobotIds(String userId) {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
