@@ -41,6 +41,7 @@ public class OpenAIServiceImpl implements OpenAIService {
      */
     @Override
     public ChatMessage requestChatCompletion(List<ChatMessage> messages) {
+        log.info("token = {}", token);
         OpenAiService service = new OpenAiService(token);
 
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest

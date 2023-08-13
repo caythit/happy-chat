@@ -10,7 +10,7 @@ import static com.happy.chat.uitls.CacheKeyProvider.userChatgptWarnMaxCountKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userEnterChatgptAdvanceModelThresholdKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userEnterHappyModelLatestTimeKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userExitHappyModelExpireMillsKey;
-import static com.happy.chat.uitls.CacheKeyProvider.userGptPromptKey;
+import static com.happy.chat.uitls.CacheKeyProvider.robotGptPromptKey;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,6 +31,7 @@ import com.happy.chat.model.ChatResponse;
 import com.happy.chat.service.ChatService;
 import com.happy.chat.service.OpenAIService;
 import com.happy.chat.service.PaymentService;
+import com.happy.chat.uitls.ObjectMapperUtils;
 import com.happy.chat.uitls.OkHttpUtils;
 import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
@@ -395,7 +396,9 @@ public class ChatServiceImpl implements ChatService {
 
     // todo
     private String requestHappyModel(String currentUserInput, List<FlirtopiaChat> historyChats) {
-//        Response response = okHttpUtils.postJson();
+        log.info("requestHappyModel currentUserInput={}, historyChats={}", currentUserInput, ObjectMapperUtils.toJSON(historyChats));
+
+        //        Response response = okHttpUtils.postJson();
         return null;
     }
 
@@ -410,8 +413,9 @@ public class ChatServiceImpl implements ChatService {
      */
     private String requestChatgpt(String robotId, String version, String currentUserInput, List<FlirtopiaChat> historyChats) {
         // 从缓存里取出robot对应的prompt，分成热情版/普通版。即role=system
-        String prompt = redisUtil.get(userGptPromptKey(robotId, version));
+        String prompt = redisUtil.get(robotGptPromptKey(robotId, version));
         if (StringUtils.isEmpty(prompt)) {
+            log.error("robot {} has no prompt {} ", robotId, version);
             prometheusUtil.perf(chatPrometheusCounter, "get_robot_prompt_empty_" + robotId);
             return null;
         }
@@ -429,6 +433,8 @@ public class ChatServiceImpl implements ChatService {
             }
         });
         messages.add(new ChatMessage(ChatMessageRole.USER.value(), currentUserInput));
+        log.info("request openai, robot {}, request {} ", robotId, ObjectMapperUtils.toJSON(messages));
+
         ChatMessage response = openAIService.requestChatCompletion(messages);
         return response == null ? null : response.getContent();
     }

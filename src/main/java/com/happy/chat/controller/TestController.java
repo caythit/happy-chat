@@ -64,6 +64,8 @@ public class TestController {
 
         result.put("data", String.format("hello, %s", userName));
         log.info("test log...");
+        log.warn("test log...");
+        log.error("test log...");
         return result;
     }
 
