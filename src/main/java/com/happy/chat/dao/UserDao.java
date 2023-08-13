@@ -20,7 +20,7 @@ public class UserDao {
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
     public static final String TABLE_NAME = "user_info";
-    public static final String ALL_FIELD = "id,user_id,user_name,user_pwd,email,"
+    public static final String ALL_FIELD = "id,dummy_user_id,user_id,user_prefer_info,user_name,user_pwd,email,"
             + "phone,pwd_salt,extra_info,create_time,update_time";
 
     private final RowMapper<User> userRowMapper = new BeanPropertyRowMapper<>(User.class);
