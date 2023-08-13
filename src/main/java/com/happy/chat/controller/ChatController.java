@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.happy.chat.helper.ChatApiHelper;
 
+import lombok.extern.slf4j.Slf4j;
+
 @RestController
 @RequestMapping("/rest/h/chat")
+@Slf4j
 public class ChatController {
     @Autowired
     private ChatApiHelper chatApiHelper;
@@ -28,19 +31,24 @@ public class ChatController {
     public Map<String, Object> request(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                        @RequestParam("robotId") String robotId,
                                        @RequestParam("content") String content) {
+        log.info("request = {} {} {}", userId, robotId, content);
         return chatApiHelper.request(userId, robotId, content);
     }
 
     // chat列表 只展示最新一条消息
     @RequestMapping("/list")
-    public Map<String, Object> list(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId) {
-        return chatApiHelper.listUserChat(userId);
+    public Map<String, Object> list(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
+                                    @RequestParam(value = "ud") String dummyUid) {
+        // todo 改成cookie userId
+        return chatApiHelper.listUserChat(dummyUid);
     }
 
     // 和robot的历史聊天信息
     @RequestMapping("/robot/history")
     public Map<String, Object> historyChat(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
+                                           @RequestParam(value = "ud") String dummyUid,
                                            @RequestParam("robotId") String robotId) {
-        return chatApiHelper.getUserRobotHistoryChats(userId, robotId);
+        // todo 改成cookie userId
+        return chatApiHelper.getUserRobotHistoryChats(dummyUid, robotId);
     }
 }
