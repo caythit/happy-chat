@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.MissingFormatArgumentException;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
@@ -18,6 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CommonUtils {
+    private static String emailRegex = "^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+(?:\\.[a-zA-Z0-9_!#$%&'*+/=?`{|}~^-]+)*@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$";
+
+    private static Pattern emailPattern = Pattern.compile(emailRegex);
 
     public static String defaultUserName() {
         return "User_" + System.currentTimeMillis();
@@ -57,18 +62,18 @@ public class CommonUtils {
         return message;
     }
 
+    // https://www.kancloud.cn/apachecn/howtodoinjava-zh/1952966
     public static boolean emailPatternValid(String email) {
-        return false; // todo 邮箱正则匹配
+        Matcher matcher = emailPattern.matcher(email);
+        return matcher.matches();
     }
 
     public static boolean passwordPatternValid(String password) {
-        if (password.length() < MIN_USER_PWD_LENGTH) {
-            return false;
-        }
-        if (password.length() > MAX_USER_PWD_LENGTH) {
-            return false;
-        }
-        return true; // todo 密码验证组合
+        // notice: only allow just one true
+        PasswordValidator passwordValidator =
+                PasswordValidator.buildValidator(false, false, true,
+                        MIN_USER_PWD_LENGTH, MAX_USER_PWD_LENGTH);
+        return passwordValidator.validatePassword(password);
     }
 
     public static int randomMailCode() {
@@ -82,5 +87,18 @@ public class CommonUtils {
 
         System.out.println(enPwd);
         System.out.println(dePwd);
+
+        System.out.println(emailPatternValid("liuweikai@gamail.com"));
+        System.out.println(emailPatternValid("liuweikai#gamail.com"));
+        System.out.println(emailPatternValid("liuweikaigamail.com"));
+        System.out.println(emailPatternValid("liuweikai@gamail.com@lwk"));
+
+        System.out.println(passwordPatternValid("liuweikai"));
+        System.out.println(passwordPatternValid("liuweikai1223"));
+        System.out.println(passwordPatternValid("123rlkiuwd"));
+        System.out.println(passwordPatternValid("liu123lkiuwd"));
+        System.out.println(passwordPatternValid("liu"));
+        System.out.println(passwordPatternValid("Liuweikai123456789123"));
+        System.out.println(passwordPatternValid("Liuweikai"));
     }
 }
