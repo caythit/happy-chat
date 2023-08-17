@@ -87,15 +87,15 @@ public class TestController {
         result.put(defaultRobotRespChatKey(), redisUtil.range(defaultRobotRespChatKey(), 0, -1));
 
         // 退场机制时间
-        redisUtil.rightPushAll(userExitHappyModelExpireMillsKey(), "1800000");
+        redisUtil.set(userExitHappyModelExpireMillsKey(), "1800000");
         result.put(userExitHappyModelExpireMillsKey(), redisUtil.get(userExitHappyModelExpireMillsKey()));
 
         // 聊天请求热情版gpt触发消息条数
-        redisUtil.rightPushAll(userEnterChatgptAdvanceModelThresholdKey(), "10");
+        redisUtil.set(userEnterChatgptAdvanceModelThresholdKey(), "10");
         result.put(userEnterChatgptAdvanceModelThresholdKey(), redisUtil.get(userEnterChatgptAdvanceModelThresholdKey()));
 
         // 聊天普通版gpt警报阈值次数
-        redisUtil.rightPushAll(userChatgptWarnMaxCountKey(), "3");
+        redisUtil.set(userChatgptWarnMaxCountKey(), "3");
         result.put(userChatgptWarnMaxCountKey(), redisUtil.get(userChatgptWarnMaxCountKey()));
 
         StartupConfigModel startupConfig = new StartupConfigModel();

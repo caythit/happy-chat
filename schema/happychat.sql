@@ -27,7 +27,7 @@ CREATE TABLE `robot_info` (
     `robot_id` VARCHAR(50) NOT NULL COMMENT 'uuid',
     `head_url` VARCHAR(128) NOT NULL COMMENT '头像',
     `cover_url` VARCHAR(128) NOT NULL COMMENT '封面',
-    `bg_url` VARCHAR(128) NOT NULL COMMENT '背景图，目前按一张来',
+    `bg_url` VARCHAR(128) DEFAULT NULL COMMENT '背景图，目前按一张来',
     `name` VARCHAR(50) NOT NULL COMMENT 'name',
     `sex` tinyint(1) UNSIGNED NOT NULL COMMENT '1:man,2:women',
     `age` tinyint(5) UNSIGNED NOT NULL COMMENT 'age',
@@ -49,8 +49,6 @@ CREATE TABLE `robot_ice_break_word` (
 
 CREATE TABLE `robot_prompt` (
     `id` BIGINT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
-    `create_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录创建时间',
-    `update_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录更新时间',
     `robot_id` VARCHAR(50) NOT NULL COMMENT 'uuid',
     `prompt_version` VARCHAR(50) NOT NULL COMMENT '版本：normal,advance',
     `prompt_info` text COLLATE utf8mb4_bin COMMENT '人设信息',
