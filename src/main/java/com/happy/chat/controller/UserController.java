@@ -21,6 +21,7 @@ import com.happy.chat.domain.User;
 import com.happy.chat.enums.ErrorEnum;
 import com.happy.chat.helper.UserApiHelper;
 import com.happy.chat.uitls.ApiResult;
+import com.happy.chat.view.UserInfoView;
 
 import io.prometheus.client.CollectorRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,7 @@ public class UserController {
         Map<String, Object> res = useHelper.doLoginByEmail(email, password);
         // 成功设置cookie
         if (res.get(ERROR_CODE).equals(ErrorEnum.SUCCESS.getErrCode())) {
-            User user = (User) res.get(DATA);
+            UserInfoView user = (UserInfoView) res.get(DATA);
             // 创建一个 cookie对象
             Cookie cookie = new Cookie(COOKIE_SESSION_ID, user.getUserId());
             cookie.setSecure(true);  //Https 安全cookie
@@ -65,7 +66,7 @@ public class UserController {
         Map<String, Object> res = useHelper.doRegisterByEmail(dummyUid, email, password);
         // 成功设置cookie
         if (res.get(ERROR_CODE).equals(ErrorEnum.SUCCESS.getErrCode())) {
-            User user = (User) res.get(DATA);
+            UserInfoView user = (UserInfoView) res.get(DATA);
             // 创建一个 cookie对象
             Cookie cookie = new Cookie(COOKIE_SESSION_ID, user.getUserId());
             cookie.setSecure(true);  //Https 安全cookie
