@@ -39,7 +39,7 @@ public class PaymentController {
     @LoginRequired
     @RequestMapping("/create_session")
     public Map<String, Object> createSession() {
-        Map<String, Object> resultMap = new HashMap<>();
+        Map<String, Object> resultMap = ApiResult.ofSuccess();
         try {
             Stripe.apiKey = privateKey;
 

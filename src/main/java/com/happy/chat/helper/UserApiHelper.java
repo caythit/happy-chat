@@ -65,7 +65,7 @@ public class UserApiHelper {
     }
 
     public Map<String, Object> doRegisterByEmail(String dummyUserId, String email, String password) {
-        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> result = ApiResult.ofSuccess();
 
         ErrorEnum registerErr = registerVerify(email, password);
         if (registerErr != ErrorEnum.SUCCESS) {
