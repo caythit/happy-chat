@@ -4,6 +4,7 @@ import static com.happy.chat.constants.Constant.USER_ID_PREFIX;
 import static com.happy.chat.uitls.CacheKeyProvider.startupConfigKey;
 
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
+import com.happy.chat.domain.Robot;
 import com.happy.chat.enums.ErrorEnum;
+import com.happy.chat.model.StartupConfigModel;
+import com.happy.chat.service.RobotService;
 import com.happy.chat.service.UserService;
 import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.CommonUtils;
@@ -37,17 +41,29 @@ public class StartupApiHelper {
     @Autowired
     private RedisUtil redisUtil;
 
+    @Autowired
+    private RobotService robotService;
+
     public StartupConfigView getConfig() {
         // 优先从redis读(提前写进去)，如果没有直接使用mock写死的数据
         String str = redisUtil.get(startupConfigKey());
-        StartupConfigView view = ObjectMapperUtils.fromJSON(str, StartupConfigView.class);
+        StartupConfigModel model = ObjectMapperUtils.fromJSON(str, StartupConfigModel.class);
 
-        if (view == null) {
+        StartupConfigView startupConfigView = new StartupConfigView();
+        if (model == null) {
             log.error("getConfig failed, use mock view");
             prometheusUtil.perf("mock_config");
-            view = mockView();
+            startupConfigView = mockView();
         } else {
             prometheusUtil.perf("read_config");
+            startupConfigView.setLogoUrl(model.getLogoUrl());
+            startupConfigView.setAgeOptions(model.getAgeOptions());
+            startupConfigView.setIntroduceText(model.getIntroduceText());
+            startupConfigView.setWelcomeText(model.getWelcomeText());
+            Map<String, Robot> robotMap = robotService.batchGetRobotById(model.getPymlRobotIds());
+            startupConfigView.setPymlRobots(robotMap.values().stream()
+                    .map(r -> new RobotStartupView(r.getRobotId(), r.getHeadUrl(), r.getName()))
+                    .collect(Collectors.toList()));
         }
 
         // 生成dummy user
@@ -57,9 +73,10 @@ public class StartupApiHelper {
             log.error("insert db dummy user failed {}", dummyUserId);
             prometheusUtil.perf("add_dummy_user_failed");
         }
-        view.setDummyUid(dummyUserId);
-        return view;
+        startupConfigView.setDummyUid(dummyUserId);
+        return startupConfigView;
     }
+
 
     private StartupConfigView mockView() {
         StartupConfigView startupConfigView = new StartupConfigView();
