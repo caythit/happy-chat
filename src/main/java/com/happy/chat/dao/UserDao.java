@@ -68,10 +68,11 @@ public class UserDao {
     }
 
     public int insert(User user) {
-        String sql = "insert into " + TABLE_NAME
-                + " (user_id, user_name, user_pwd,email, phone, pwd_salt, extra_info, create_time, update_time) "
-                + " values (:userId, :userName, :userPwd, :email, :phone, :pwdSalt, :extraInfo, :createTime, :updateTime) "
-                + " on duplicate key update update_time = :updateTime";
+        String sql = "update " + TABLE_NAME
+                + " set user_id = :userId, user_name = :userName, user_pwd = :userPwd, email=:email, phone=:photo, "
+                + " pwd_salt=:pwdSalt, extra_info=:extraInfo, create_time=:createTime, update_time=:updateTime "
+                +  "where dummy_user_id = :userId";
+
         MapSqlParameterSource params = new MapSqlParameterSource();
 
         params.addValue("userId", user.getUserId());

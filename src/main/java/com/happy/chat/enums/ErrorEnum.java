@@ -11,8 +11,9 @@ public enum ErrorEnum {
     PASSWORD_PATTERN_INVALID(20003, "密码格式有误"),
 
     USER_EMAIL_ALREADY_USED(30005, "该邮箱已被使用"),
-    REG_USER_PWD_TOO_SHORT(30006, "注册用户密码过短(不少于6位)"),
-    REG_USER_PWD_TOO_LONG(30007, "注册用户密码过长(不少于15位)"),
+    REG_USER_PWD_TOO_SHORT(30006, "注册用户密码过短"),
+    REG_USER_PWD_TOO_LONG(30007, "注册用户密码过长"),
+    REG_FAILED_BY_DUMMY_NOT_EXIST(30008, "注册失败dummy用户不存在"),
 
     EMAIL_PATTERN_INVALID(50001, "邮箱格式有误"),
     EMAIL_SEND_CODE_FAIL(50002, "发送邮箱验证码失败"),

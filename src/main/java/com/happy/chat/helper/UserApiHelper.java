@@ -72,6 +72,12 @@ public class UserApiHelper {
             log.error("doRegisterByEmail verify failed {} {}", email, password);
             return ApiResult.ofFail(registerErr);
         }
+        User dummyUser = userService.getDummyUser(dummyUserId);
+        if (dummyUser == null) {
+            log.error("doRegisterByEmail failed by dummy user not exists {} {}", email, password);
+            return ApiResult.ofFail(ErrorEnum.REG_FAILED_BY_DUMMY_NOT_EXIST);
+        }
+
         // 加密
         String salt = generateSalt();
         String encryptPwd = CommonUtils.encryptPwd(salt, password);
