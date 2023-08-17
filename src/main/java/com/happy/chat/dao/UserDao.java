@@ -69,7 +69,7 @@ public class UserDao {
 
     public int insert(User user) {
         String sql = "update " + TABLE_NAME
-                + " set user_id = :userId, user_name = :userName, user_pwd = :userPwd, email=:email, phone=:photo, "
+                + " set user_id = :userId, user_name = :userName, user_pwd = :userPwd, email=:email, phone=:phone, "
                 + " pwd_salt=:pwdSalt, extra_info=:extraInfo, create_time=:createTime, update_time=:updateTime "
                 +  "where dummy_user_id = :userId";
 
