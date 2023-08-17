@@ -8,10 +8,15 @@ import static com.happy.chat.uitls.CacheKeyProvider.userChatgptWarnMaxCountKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userEnterChatgptAdvanceModelThresholdKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userExitHappyModelExpireMillsKey;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +27,7 @@ import com.happy.chat.domain.Robot;
 import com.happy.chat.model.StartupConfigModel;
 import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
+import com.happy.chat.uitls.FileUtils;
 import com.happy.chat.uitls.ObjectMapperUtils;
 import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
@@ -79,10 +85,12 @@ public class TestController {
         Map<String, Object> result = ApiResult.ofSuccess();
 
         // 敏感词
+        redisUtil.delete(chatSensitiveWordKey());
         redisUtil.rightPushAll(chatSensitiveWordKey(), "are LLM", "are robot", "are chat gpt");
         result.put(chatSensitiveWordKey(), redisUtil.range(chatSensitiveWordKey(), 0, -1));
 
         // 默认回复
+        redisUtil.delete(defaultRobotRespChatKey());
         redisUtil.rightPushAll(defaultRobotRespChatKey(), "It's not funny, you think I'm boring like a robot?");
         result.put(defaultRobotRespChatKey(), redisUtil.range(defaultRobotRespChatKey(), 0, -1));
 
@@ -138,5 +146,12 @@ public class TestController {
 
 
         return result;
+    }
+
+
+    public static void main(String[] args) {
+        String fileName = String.format("%s_%s.prompt", "rb_test11", "normal");
+
+        System.out.println(FileUtils.getFileContent(fileName));
     }
 }

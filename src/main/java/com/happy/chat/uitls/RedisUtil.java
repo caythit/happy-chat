@@ -341,6 +341,10 @@ public class RedisUtil {
         return myRedisClient.opsForHash().delete(key, hashKeys);
     }
 
+    public Long delete(String key) {
+        return myRedisClient.opsForHash().delete(key);
+    }
+
     /**
      * 给指定 hash 的 hashkey 做增减操作
      *
