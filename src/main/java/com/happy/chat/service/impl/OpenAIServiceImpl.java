@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -23,9 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OpenAIServiceImpl implements OpenAIService {
 
-    @Value("${com.flirtopia.openai.token}")
-    private String token;
-
     @Autowired
     private PrometheusUtils prometheusUtil;
 
@@ -40,9 +36,9 @@ public class OpenAIServiceImpl implements OpenAIService {
      * @return
      */
     @Override
-    public ChatMessage requestChatCompletion(List<ChatMessage> messages) {
-        log.info("token = {}", token);
-        OpenAiService service = new OpenAiService(token);
+    public ChatMessage requestChatCompletion(String apiToken, List<ChatMessage> messages) {
+        log.info("token = {}", apiToken);
+        OpenAiService service = new OpenAiService(apiToken);
 
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest
                 .builder()

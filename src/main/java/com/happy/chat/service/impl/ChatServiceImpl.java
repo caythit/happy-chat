@@ -5,6 +5,7 @@ import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatWarnWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
+import static com.happy.chat.uitls.CacheKeyProvider.gptApiTokenKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userChatgptWarnKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userChatgptWarnMaxCountKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userEnterChatgptAdvanceModelThresholdKey;
@@ -421,6 +422,13 @@ public class ChatServiceImpl implements ChatService {
             return null;
         }
 
+        String apiKey = redisUtil.get(gptApiTokenKey());
+        if (StringUtils.isEmpty(apiKey)) {
+            log.error("chat gpt apikey empty");
+            prometheusUtil.perf(chatPrometheusCounter, "get_gpt_api_key_failed");
+            return null;
+        }
+
         List<ChatMessage> messages = new ArrayList<>();
         // role=system,系统设定，即prompt; role=user,用户输入；role=assistant,gpt输入
         ChatMessage systemMessage = new ChatMessage(ChatMessageRole.SYSTEM.value(), prompt);
@@ -436,7 +444,7 @@ public class ChatServiceImpl implements ChatService {
         messages.add(new ChatMessage(ChatMessageRole.USER.value(), currentUserInput));
         log.info("request openai, robot {}, request {} ", robotId, ObjectMapperUtils.toJSON(messages));
 
-        ChatMessage response = openAIService.requestChatCompletion(messages);
+        ChatMessage response = openAIService.requestChatCompletion(apiKey, messages);
         return response == null ? null : response.getContent();
     }
 

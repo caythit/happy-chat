@@ -35,8 +35,6 @@ com:
       salt: flirtopia
       encry-pwd: xxxx
       from: flortopia_service@gmail.com
-    openai:
-        token: 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
 stripe:
   apiKey: xxxx
   webhookSecret: xxx

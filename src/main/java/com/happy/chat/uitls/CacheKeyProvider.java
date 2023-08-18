@@ -8,6 +8,10 @@ public class CacheKeyProvider {
         return PREFIX.concat("startConfig");
     }
 
+    public static String gptApiTokenKey() {
+        return PREFIX.concat("gptApiToken");
+    }
+
     public static String mailCodeKey(String email) {
         String key = String.format("mailCode:%s", email);
         return PREFIX.concat(key);
