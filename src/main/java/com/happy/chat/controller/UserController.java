@@ -50,7 +50,7 @@ public class UserController {
             UserInfoView user = (UserInfoView) res.get(DATA);
             // 创建一个 cookie对象
             Cookie cookie = new Cookie(COOKIE_SESSION_ID, user.getUserId());
-            cookie.setSecure(true);  //Https 安全cookie
+//            cookie.setSecure(true);  //Https 安全cookie
             cookie.setMaxAge(365 * 24 * 60 * 60); // 30天过期
             //将cookie对象加入response响应
             response.addCookie(cookie);
@@ -69,7 +69,7 @@ public class UserController {
             UserInfoView user = (UserInfoView) res.get(DATA);
             // 创建一个 cookie对象
             Cookie cookie = new Cookie(COOKIE_SESSION_ID, user.getUserId());
-            cookie.setSecure(true);  //Https 安全cookie
+//            cookie.setSecure(true);  //Https 安全cookie
             cookie.setMaxAge(365 * 24 * 60 * 60); // 30天过期
             //将cookie对象加入response响应
             response.addCookie(cookie);
