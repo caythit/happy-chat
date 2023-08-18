@@ -5,7 +5,6 @@ import static com.happy.chat.enums.ErrorEnum.SERVER_ERROR;
 import static com.happy.chat.uitls.CommonUtils.defaultUserName;
 import static com.happy.chat.uitls.EnDecoderUtil.generateSalt;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -200,5 +199,22 @@ public class UserApiHelper {
         prometheusUtil.perf("modify_user_name_success");
         return ApiResult.ofSuccess();
 
+    }
+
+    public Map<String, Object> getUserInfo(String userId) {
+        Map<String, Object> result = ApiResult.ofSuccess();
+
+        User user = userService.getUser(UserGetRequest.builder()
+                .userId(userId)
+                .build());
+
+        // 没有拿到
+        if (user == null) {
+            log.error("getUserInfo null {}", userId);
+            prometheusUtil.perf("get_user_info_failed_" + userId);
+            return ApiResult.ofFail(ErrorEnum.USER_NOT_EXIST);
+        }
+        result.put(DATA, user);
+        return result;
     }
 }
