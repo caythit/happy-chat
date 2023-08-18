@@ -214,7 +214,8 @@ public class UserApiHelper {
             prometheusUtil.perf("get_user_info_failed_" + userId);
             return ApiResult.ofFail(ErrorEnum.USER_NOT_EXIST);
         }
-        result.put(DATA, user);
+        UserInfoView userView = UserInfoView.convert(user);
+        result.put(DATA, userView);
         return result;
     }
 }
