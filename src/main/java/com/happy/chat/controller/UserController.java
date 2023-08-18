@@ -100,7 +100,7 @@ public class UserController {
 
     // 没有用了。
     @RequestMapping("/profile")
-    public Map<String, Object> profile(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,) {
+    public Map<String, Object> profile(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId) {
         return useHelper.getUserInfo(userId);
     }
 
