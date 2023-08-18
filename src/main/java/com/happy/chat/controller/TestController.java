@@ -1,6 +1,7 @@
 package com.happy.chat.controller;
 
 import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
+import static com.happy.chat.uitls.CacheKeyProvider.chatWarnWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
 import static com.happy.chat.uitls.CacheKeyProvider.robotGptPromptKey;
 import static com.happy.chat.uitls.CacheKeyProvider.startupConfigKey;
@@ -70,6 +71,11 @@ public class TestController {
         redisUtil.delete(chatSensitiveWordKey());
         redisUtil.rightPushAll(chatSensitiveWordKey(), "are LLM", "are robot", "are chat gpt");
         result.put(chatSensitiveWordKey(), redisUtil.range(chatSensitiveWordKey(), 0, -1));
+
+        // 敏感词
+        redisUtil.delete(chatWarnWordKey());
+        redisUtil.rightPushAll(chatWarnWordKey(), "are LLM", "are robot", "are chat gpt");
+        result.put(chatWarnWordKey(), redisUtil.range(chatWarnWordKey(), 0, -1));
 
         // 默认回复
         redisUtil.delete(defaultRobotRespChatKey());

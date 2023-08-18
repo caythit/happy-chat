@@ -142,7 +142,7 @@ public class ChatServiceImpl implements ChatService {
         }
 
         //  按时间升序排序
-        List<FlirtopiaChat> userHistoryMessages = getUserHistoryChats(userId).stream()
+        List<FlirtopiaChat> userHistoryMessages = getUserRobotHistoryChats(userId, robotId).stream()
                 .sorted(Comparator.comparing(FlirtopiaChat::getCreateTime)).collect(Collectors.toList());
         // 是否付费 若付费，直接调用快乐模型，调用前检查是否超过快乐模型过期时间，若已经过期，则降级调用热情版gpt
         boolean hasPay = paymentService.userHasPayedRobot(userId, robotId);
@@ -172,6 +172,7 @@ public class ChatServiceImpl implements ChatService {
 
         // 退场，轮次够，使用热情版gpt
         if (isEnterChatgptAdvancedModel(userHistoryMessages)) {
+            log.info("isEnterChatgptAdvancedModel {} {}", userId, robotId);
             return getRobotUnPaidRespFromAdvancedGpt(userId, robotId, content, userHistoryMessages);
         }
         // 退场，轮次不够，使用热情版gpt
@@ -359,7 +360,13 @@ public class ChatServiceImpl implements ChatService {
         if (StringUtils.isEmpty(content)) {
             return false;
         }
-        return content.contains("");
+        List<String> warnList = redisUtil.range(chatWarnWordKey(), 0, -1);
+        if (CollectionUtils.isEmpty(warnList)) {
+            prometheusUtil.perf(chatPrometheusCounter, "get_chat_warn_keyword_empty");
+            return false;
+        }
+        return warnList.stream()
+                .anyMatch(content::contains);
     }
 
     private void addGptWarnCount(String userId, String robotId) {
