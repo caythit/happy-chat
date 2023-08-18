@@ -49,6 +49,8 @@ public class ChatServiceImpl implements ChatService {
 
     private final String defaultHappyModelExitExpireTime = "300000";
     private final String defaultEnterAdvanceModelHistoryChatSize = "10";
+    private final String defaultPayTips = "You need pay for it. $10";
+    private final String defaultWarnTips = "Watch out your word";
     private final String defaultUserChatWarnMaxCount = "3";
 
     private final String normalVersionGpt = "normal";
@@ -197,7 +199,7 @@ public class ChatServiceImpl implements ChatService {
         if (!chatResponse.isUseDefault()) {
             updateHappyModelLatestTime(userId, robotId);
             // todo 同时返回付费提示 客户端高斯模糊
-            chatResponse.setPayTips(redisUtil.getOrDefault(chatUnPayWordKey(), "xxxx"));
+            chatResponse.setPayTips(redisUtil.getOrDefault(chatUnPayWordKey(), defaultPayTips));
         }
         return chatResponse;
     }
@@ -227,7 +229,7 @@ public class ChatServiceImpl implements ChatService {
         if (!chatResponse.isUseDefault() && fromHappyModel) {
             updateHappyModelLatestTime(userId, robotId);
             // todo
-            chatResponse.setPayTips(redisUtil.getOrDefault(chatUnPayWordKey(), "xxxx"));
+            chatResponse.setPayTips(redisUtil.getOrDefault(chatUnPayWordKey(), defaultPayTips));
         }
         return chatResponse;
     }
@@ -267,11 +269,11 @@ public class ChatServiceImpl implements ChatService {
             if (fromHappyModel) {
                 updateHappyModelLatestTime(userId, robotId);
                 // todo
-                chatResponse.setPayTips(redisUtil.getOrDefault(chatUnPayWordKey(), "xxxx"));
+                chatResponse.setPayTips(redisUtil.getOrDefault(chatUnPayWordKey(), defaultPayTips));
             }
             if (hasWarn) {
                 // todo
-                chatResponse.setWarnTips(redisUtil.getOrDefault(chatWarnWordKey(), "xxxx"));
+                chatResponse.setWarnTips(redisUtil.getOrDefault(chatWarnWordKey(), defaultWarnTips));
             }
         }
         return chatResponse;
