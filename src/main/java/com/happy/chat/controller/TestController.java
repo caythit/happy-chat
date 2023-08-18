@@ -8,15 +8,10 @@ import static com.happy.chat.uitls.CacheKeyProvider.userChatgptWarnMaxCountKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userEnterChatgptAdvanceModelThresholdKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userExitHappyModelExpireMillsKey;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,18 +28,12 @@ import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
 import com.happy.chat.view.StartupConfigView;
 
-import io.prometheus.client.CollectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/rest/h/test")
 @Slf4j
 public class TestController {
-    private final String prometheusName = "test";
-    private final String prometheusHelp = "testApi";
-
-    @Autowired
-    private CollectorRegistry testRegistry;
 
     @Autowired
     private RobotService robotService;
@@ -70,13 +59,6 @@ public class TestController {
         log.info("test log...");
         log.warn("test log...");
         log.error("test log...");
-        return result;
-    }
-
-    @RequestMapping("/insertStartupConfig")
-    public Map<String, Object> insertStartupConfig() {
-        Map<String, Object> result = ApiResult.ofSuccess();
-
         return result;
     }
 

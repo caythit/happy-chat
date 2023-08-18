@@ -17,25 +17,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.happy.chat.annotation.LoginRequired;
-import com.happy.chat.domain.User;
 import com.happy.chat.enums.ErrorEnum;
 import com.happy.chat.helper.UserApiHelper;
 import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.view.UserInfoView;
 
-import io.prometheus.client.CollectorRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/rest/h/user")
 @Slf4j
 public class UserController {
-
-    private final String prometheusName = "user_api";
-    private final String prometheusHelp = "user for grafana";
-
-    @Autowired
-    private CollectorRegistry userRegistry;
 
     @Autowired
     private UserApiHelper useHelper;
@@ -80,7 +72,7 @@ public class UserController {
     @RequestMapping("/modifyUserName")
     public Map<String, Object> modifyUserName(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                               @RequestParam("userName") String userName) {
-        log.info("logout, userId={}, userName={}", userId, userName);
+        log.info("modifyUserName, userId={}, userName={}", userId, userName);
         return useHelper.modifyUserName(userId, userName);
     }
 
@@ -98,7 +90,6 @@ public class UserController {
         return ApiResult.ofSuccess();
     }
 
-    // 没有用了。
     @RequestMapping("/profile")
     public Map<String, Object> profile(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId) {
         return useHelper.getUserInfo(userId);
