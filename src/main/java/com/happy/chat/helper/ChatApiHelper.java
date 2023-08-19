@@ -4,7 +4,7 @@ import static com.happy.chat.constants.Constant.CHAT_FROM_ROBOT;
 import static com.happy.chat.constants.Constant.CHAT_FROM_USER;
 import static com.happy.chat.constants.Constant.DATA;
 import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_PAY_TIPS;
-import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_WARN_TIPS;
+import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_SYSTEM_TIPS;
 import static com.happy.chat.constants.Constant.MESSAGE_ID_PREFIX;
 import static java.util.stream.Collectors.groupingBy;
 
@@ -194,10 +194,10 @@ public class ChatApiHelper {
                     ObjectMapperUtils.toJSON(ImmutableMap.of(EXTRA_INFO_MESSAGE_PAY_TIPS, chatResponse.getPayTips())));
         }
 
-        if (StringUtils.isNotEmpty(chatResponse.getWarnTips())) {
+        if (StringUtils.isNotEmpty(chatResponse.getSystemTips())) {
             // 提示文案
             robotRespMessage.setExtraInfo(
-                    ObjectMapperUtils.toJSON(ImmutableMap.of(EXTRA_INFO_MESSAGE_WARN_TIPS, chatResponse.getWarnTips())));
+                    ObjectMapperUtils.toJSON(ImmutableMap.of(EXTRA_INFO_MESSAGE_SYSTEM_TIPS, chatResponse.getSystemTips())));
         }
 
         Map<String, Object> result = ApiResult.ofSuccess();

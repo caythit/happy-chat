@@ -21,7 +21,7 @@ public class Constant {
     public static final String EXTRA_INFO_ROBOT_INTEREST = "interest";
     public static final String EXTRA_INFO_ROBOT_ABOUT_ME = "aboutMe";
     public static final String EXTRA_INFO_MESSAGE_PAY_TIPS = "payTips";
-    public static final String EXTRA_INFO_MESSAGE_WARN_TIPS = "warnTips";
+    public static final String EXTRA_INFO_MESSAGE_SYSTEM_TIPS = "systemTips";
 
     public static final String CHAT_FROM_USER = "user";
     public static final String CHAT_FROM_ROBOT = "robot";
