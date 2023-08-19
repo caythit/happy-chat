@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.happy.chat.service.OpenAIService;
+import com.happy.chat.uitls.ObjectMapperUtils;
 import com.happy.chat.uitls.PrometheusUtils;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatCompletionResult;
@@ -37,11 +38,9 @@ public class OpenAIServiceImpl implements OpenAIService {
      */
     @Override
     public ChatMessage requestChatCompletion(String apiToken, List<ChatMessage> messages) {
-        log.info("token = {}", apiToken);
         OpenAiService service = new OpenAiService(apiToken);
 
-        ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest
-                .builder()
+        ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
                 .model("gpt-3.5-turbo")
                 .messages(messages)
                 .n(1)
@@ -50,7 +49,7 @@ public class OpenAIServiceImpl implements OpenAIService {
                 .build();
         ChatCompletionResult chatCompletionResult = service.createChatCompletion(chatCompletionRequest);
         if (chatCompletionResult == null || CollectionUtils.isEmpty(chatCompletionResult.getChoices())) {
-            log.error("gpt return empty");
+            log.error("gpt return empty {}", ObjectMapperUtils.toJSON(chatCompletionRequest));
             prometheusUtil.perf("chat_open_ai_return_empty");
             return null;
         }

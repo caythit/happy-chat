@@ -1,6 +1,9 @@
 package com.happy.chat.controller;
 
+import static com.happy.chat.uitls.CacheKeyProvider.chatFinishPayTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
+import static com.happy.chat.uitls.CacheKeyProvider.chatSystemTipsKey;
+import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatWarnWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
 import static com.happy.chat.uitls.CacheKeyProvider.robotGptPromptKey;
@@ -82,6 +85,24 @@ public class TestController {
         redisUtil.rightPushAll(defaultRobotRespChatKey(), "It's not funny, you think I'm boring like a robot?");
         result.put(defaultRobotRespChatKey(), redisUtil.range(defaultRobotRespChatKey(), 0, -1));
 
+        // 系统提示 规劝文案
+        redisUtil.set(chatSystemTipsKey(), "Don't scare a girl. Do it gently and softly.");
+        result.put(chatSystemTipsKey(), redisUtil.get(chatSystemTipsKey()));
+
+
+        // 促支付文案
+        redisUtil.rightPushAll(chatUnPayTipsKey(), "Don’t be shy to undress me, only $9.9",
+                "Darling i want to serve you better, only $9.9", "$9.9 for R-18 experience.", "I'll show you my true collor, only $9.9",
+                "Trying to get to second base with me? Only $9.9", "You want me to give you a tease? Only $9.9");
+        result.put(chatUnPayTipsKey(), redisUtil.range(chatUnPayTipsKey(), 0, -1));
+
+        // 支付完成文案
+        redisUtil.rightPushAll(chatFinishPayTipsKey(), "I will only serve you at all time.", "I want you so bad.",
+                "I am thirsty to have you.", "I love you. Are you rich in pants?", "Let's have a short time but good time",
+                "Give me a spanking now!", "I'm so turned on!");
+        result.put(chatFinishPayTipsKey(), redisUtil.range(chatFinishPayTipsKey(), 0, -1));
+
+
         // 退场机制时间
         redisUtil.set(userExitHappyModelExpireMillsKey(), "1800000");
         result.put(userExitHappyModelExpireMillsKey(), redisUtil.get(userExitHappyModelExpireMillsKey()));
@@ -122,16 +143,6 @@ public class TestController {
                     .collect(Collectors.toList()));
             result.put("startup", ObjectMapperUtils.toJSON(startupConfigView));
         }
-
-
-//        // 促支付文案
-//        redisUtil.rightPushAll(chatUnPayWordKey(), "ai", "chatgpt");
-//        result.put(DATA, redisUtil.range(defaultRobotRespChatKey(), 0, -1));
-//
-//        // 支付完成文案
-//        redisUtil.rightPushAll(chatFinishPayWordKey(), "ai", "chatgpt");
-//        result.put(DATA, redisUtil.range(chatFinishPayWordKey(), 0, -1));
-
 
         return result;
     }

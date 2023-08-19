@@ -13,5 +13,5 @@ public class ChatResponse {
     private String payTips;
 
     // 规劝提示
-    private String warnTips;
+    private String systemTips;
 }

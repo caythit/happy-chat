@@ -27,16 +27,50 @@ public class CacheKeyProvider {
         return PREFIX.concat("chatSensitiveWord");
     }
 
-    public static String chatUnPayWordKey() {
-        return PREFIX.concat("chatUnPayWord");
-    }
-
     public static String chatWarnWordKey() {
-        return PREFIX.concat("chatWarnWordKey");
+        return PREFIX.concat("chatWarnWord");
     }
 
-    public static String chatFinishPayWordKey() {
-        return PREFIX.concat("chatFinishPayWord");
+    /**
+     * set flirtopia:chatSystemTips
+     * -Don't scare a girl. Do it gently and softly.
+     * @return
+     */
+    public static String chatSystemTipsKey() {
+        return PREFIX.concat("chatSystemTips");
+    }
+
+    /**
+     * lpush flirtopia:chatUnPayTips
+     * <p>
+     * -Don’t be shy to undress me, only $9.9
+     * -Darling i want to serve you better, only $9.9
+     * -$9.9 for R-18 experience.
+     * -I'll show you my true collor, only $9.9
+     * -Trying to get to second base with me? Only $9.9
+     * -You want me to give you a tease? Only $9.9
+     *
+     * @return
+     */
+    public static String chatUnPayTipsKey() {
+        return PREFIX.concat("chatUnPayTips");
+    }
+
+    /**
+     * lpush flirtopia:chatFinishPayTips
+     * <p>
+     * -I will only serve you at all time.
+     * -I want you so bad.
+     * -I am thirsty to have you.
+     * -I love you. Are you rich in pants?
+     * -Let's have a short time but good time
+     * -Give me a spanking now!
+     * -I'm so turned on!
+     *
+     * @return
+     */
+    public static String chatFinishPayTipsKey() {
+        return PREFIX.concat("chatFinishPayTips");
     }
 
     public static String userEnterHappyModelLatestTimeKey(String userId, String robotId) {

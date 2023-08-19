@@ -2,7 +2,8 @@ package com.happy.chat.service.impl;
 
 import static com.happy.chat.constants.Constant.CHAT_FROM_USER;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
-import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayWordKey;
+import static com.happy.chat.uitls.CacheKeyProvider.chatSystemTipsKey;
+import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatWarnWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
 import static com.happy.chat.uitls.CacheKeyProvider.gptApiTokenKey;
@@ -49,8 +50,10 @@ public class ChatServiceImpl implements ChatService {
 
     private final String defaultHappyModelExitExpireTime = "300000";
     private final String defaultEnterAdvanceModelHistoryChatSize = "10";
-    private final String defaultPayTips = "You need pay for it. $10";
-    private final String defaultWarnTips = "Watch out your word";
+
+    private final String defaultToPayTips = "Don’t be shy to undress me, only $9.9";
+    private final String defaultAlreadyPayTips = "I will only serve you at all time.\n";
+    private final String defaultSystemTips = "Don't scare a girl. Do it gently and softly.";
     private final String defaultUserChatWarnMaxCount = "3";
 
     private final String normalVersionGpt = "normal";
@@ -199,7 +202,7 @@ public class ChatServiceImpl implements ChatService {
         if (!chatResponse.isUseDefault()) {
             updateHappyModelLatestTime(userId, robotId);
             // todo 同时返回付费提示 客户端高斯模糊
-            chatResponse.setPayTips(redisUtil.getOrDefault(chatUnPayWordKey(), defaultPayTips));
+            chatResponse.setPayTips(getUnPayTips());
         }
         return chatResponse;
     }
@@ -229,7 +232,7 @@ public class ChatServiceImpl implements ChatService {
         if (!chatResponse.isUseDefault() && fromHappyModel) {
             updateHappyModelLatestTime(userId, robotId);
             // todo
-            chatResponse.setPayTips(redisUtil.getOrDefault(chatUnPayWordKey(), defaultPayTips));
+            chatResponse.setPayTips(getUnPayTips());
         }
         return chatResponse;
     }
@@ -269,11 +272,11 @@ public class ChatServiceImpl implements ChatService {
             if (fromHappyModel) {
                 updateHappyModelLatestTime(userId, robotId);
                 // todo
-                chatResponse.setPayTips(redisUtil.getOrDefault(chatUnPayWordKey(), defaultPayTips));
+                chatResponse.setPayTips(getUnPayTips());
             }
             if (hasWarn) {
                 // todo
-                chatResponse.setWarnTips(redisUtil.getOrDefault(chatWarnWordKey(), defaultWarnTips));
+                chatResponse.setSystemTips(redisUtil.getOrDefault(chatSystemTipsKey(), defaultSystemTips));
             }
         }
         return chatResponse;
@@ -344,6 +347,29 @@ public class ChatServiceImpl implements ChatService {
                 .content(defaultResps.get(RandomUtils.nextInt(0, defaultResps.size())))
                 .useDefault(true)
                 .build();
+    }
+
+    // 付费提示
+    private String getUnPayTips() {
+        List<String> results = redisUtil.range(chatUnPayTipsKey(), 0, -1);
+        if (CollectionUtils.isEmpty(results)) {
+            log.error("robot unpay tips empty");
+            prometheusUtil.perf(chatPrometheusCounter, "get_robot_unpay_tips_empty");
+            return defaultToPayTips;
+        }
+        return results.get(RandomUtils.nextInt(0, results.size()));
+    }
+
+    // 已付费提示
+    private String getAlreadyPayTips() {
+        List<String> results = redisUtil.range(chatUnPayTipsKey(), 0, -1);
+        if (CollectionUtils.isEmpty(results)) {
+            log.error("robot already pay tips empty");
+            prometheusUtil.perf(chatPrometheusCounter, "get_robot_already_pay_tips_empty");
+            return defaultAlreadyPayTips;
+        }
+        return results.get(RandomUtils.nextInt(0, results.size()));
+
     }
 
     /**
