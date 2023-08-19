@@ -91,12 +91,14 @@ public class TestController {
 
 
         // 促支付文案
+        redisUtil.delete(chatUnPayTipsKey());
         redisUtil.rightPushAll(chatUnPayTipsKey(), "Don’t be shy to undress me, only $9.9",
                 "Darling i want to serve you better, only $9.9", "$9.9 for R-18 experience.", "I'll show you my true collor, only $9.9",
                 "Trying to get to second base with me? Only $9.9", "You want me to give you a tease? Only $9.9");
         result.put(chatUnPayTipsKey(), redisUtil.range(chatUnPayTipsKey(), 0, -1));
 
         // 支付完成文案
+        redisUtil.delete(chatFinishPayTipsKey());
         redisUtil.rightPushAll(chatFinishPayTipsKey(), "I will only serve you at all time.", "I want you so bad.",
                 "I am thirsty to have you.", "I love you. Are you rich in pants?", "Let's have a short time but good time",
                 "Give me a spanking now!", "I'm so turned on!");

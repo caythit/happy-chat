@@ -341,8 +341,8 @@ public class RedisUtil {
         return myRedisClient.opsForHash().delete(key, hashKeys);
     }
 
-    public Long delete(String key) {
-        return myRedisClient.opsForHash().delete(key);
+    public Boolean delete(String key) {
+        return myRedisClient.delete(key);
     }
 
     /**
