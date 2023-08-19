@@ -1,7 +1,7 @@
 package com.happy.chat.view;
 
 import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_PAY_TIPS;
-import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_WARN_TIPS;
+import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_SYSTEM_TIPS;
 
 import java.util.Map;
 
@@ -33,7 +33,7 @@ public class FlirtopiaChatView {
 
         Map<String, String> extraMap = ObjectMapperUtils.fromJSON(flirtopiaChat.getExtraInfo(), Map.class, String.class,String.class);
         flirtopiaChatView.setPayTips(extraMap.getOrDefault(EXTRA_INFO_MESSAGE_PAY_TIPS, Strings.EMPTY));
-        flirtopiaChatView.setWarnTips(extraMap.getOrDefault(EXTRA_INFO_MESSAGE_WARN_TIPS, Strings.EMPTY));
+        flirtopiaChatView.setWarnTips(extraMap.getOrDefault(EXTRA_INFO_MESSAGE_SYSTEM_TIPS, Strings.EMPTY));
 
         return flirtopiaChatView;
     }
