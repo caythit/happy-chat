@@ -129,7 +129,7 @@ public class EmailHelper {
         message.setFrom(new InternetAddress(from));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
         message.setSubject(subject);
-        message.setText(text);
+        message.setContent(text, "text/html");
 
         Transport.send(message);
     }
