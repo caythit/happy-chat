@@ -39,8 +39,6 @@ public class EmailHelper {
 
     @Value("${com.flirtopia.mail.user}")
     private String mailUser;
-    @Value("${com.flirtopia.mail.salt}")
-    private String mailPwdSalt;
     @Value("${com.flirtopia.mail.app-pwd}")
     private String mailAppPwd;
     @Value("${com.flirtopia.mail.from}")
