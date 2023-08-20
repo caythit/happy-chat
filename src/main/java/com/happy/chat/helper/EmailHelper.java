@@ -25,6 +25,7 @@ import com.happy.chat.model.UserGetRequest;
 import com.happy.chat.service.UserService;
 import com.happy.chat.uitls.CacheKeyProvider;
 import com.happy.chat.uitls.CommonUtils;
+import com.happy.chat.uitls.FileUtils;
 import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
 
@@ -74,10 +75,12 @@ public class EmailHelper {
         }
         try {
             String code = String.valueOf(randomMailCode());
+
+            String template = FileUtils.getFileContent("mail.html");
+            String content = String.format(template, purpose, code);
             // 5分钟有效
             redisUtil.set(CacheKeyProvider.mailCodeKey(email), code, 5, TimeUnit.MINUTES);
-            text = text + "\n" + code;
-            sendByTSL(mailUser, mailAppPwd, mailFrom, email, subject, text);
+            sendByTSL(mailUser, mailAppPwd, mailFrom, email, subject, content);
             prometheusUtil.perf("send_email_success_" + extra1);
             log.info("sendEmail success {} {}", email, code);
             return ErrorEnum.SUCCESS;
