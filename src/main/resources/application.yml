@@ -31,10 +31,10 @@ management:
 com:
   flirtopia:
     mail:
-      user: flortopia_service@gmail.com
-      salt: flirtopia
-      encry-pwd: xxxx
-      from: flortopia_service@gmail.com
+      user: flirtopiaservice@gmail.com
+      salt: dc5db98b597601d53234ea693aa73718
+      encry-pwd: ziQQ82+r21+P4jBx5EpLSg==
+      from: flirtopiaservice@gmail.com
 stripe:
   apiKey: xxxx
   webhookSecret: xxx

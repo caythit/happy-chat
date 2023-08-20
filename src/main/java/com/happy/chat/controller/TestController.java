@@ -23,10 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.happy.chat.domain.Robot;
+import com.happy.chat.enums.ErrorEnum;
+import com.happy.chat.helper.EmailHelper;
 import com.happy.chat.model.StartupConfigModel;
 import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
-import com.happy.chat.uitls.FileUtils;
 import com.happy.chat.uitls.ObjectMapperUtils;
 import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
@@ -47,6 +48,9 @@ public class TestController {
 
     @Autowired
     private PrometheusUtils prometheusUtil;
+
+    @Autowired
+    private EmailHelper emailHelper;
 
 
     @RequestMapping("/test")
@@ -149,10 +153,13 @@ public class TestController {
         return result;
     }
 
-
-    public static void main(String[] args) {
-        String fileName = String.format("%s_%s.prompt", "rb_test11", "normal");
-
-        System.out.println(FileUtils.getFileContent(fileName));
+    @RequestMapping("/sendMail")
+    public Map<String, Object> sendMail(@RequestParam("to") String to, @RequestParam("subject") String subject,
+                                        @RequestParam("text") String text) {
+        ErrorEnum errorEnum = emailHelper.sendCode(to, subject, text, false, "test");
+        if (errorEnum == ErrorEnum.SUCCESS) {
+            return ApiResult.ofSuccess();
+        }
+        return ApiResult.ofFail(errorEnum);
     }
 }

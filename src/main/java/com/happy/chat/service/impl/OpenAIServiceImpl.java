@@ -37,22 +37,27 @@ public class OpenAIServiceImpl implements OpenAIService {
      * @return
      */
     @Override
-    public ChatMessage requestChatCompletion(String apiToken, List<ChatMessage> messages) {
-        OpenAiService service = new OpenAiService(apiToken);
+    public ChatMessage requestChatCompletion(List<String> apiTokens, List<ChatMessage> messages) {
+        for (String apiToken : apiTokens) {
+            OpenAiService service = new OpenAiService(apiToken);
 
-        ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
-                .model("gpt-3.5-turbo")
-                .messages(messages)
-                .n(1)
-                .maxTokens(100)
-                .logitBias(new HashMap<>())
-                .build();
-        ChatCompletionResult chatCompletionResult = service.createChatCompletion(chatCompletionRequest);
-        if (chatCompletionResult == null || CollectionUtils.isEmpty(chatCompletionResult.getChoices())) {
-            log.error("gpt return empty {}", ObjectMapperUtils.toJSON(chatCompletionRequest));
-            prometheusUtil.perf("chat_open_ai_return_empty");
-            return null;
+            ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
+                    .model("gpt-3.5-turbo")
+                    .messages(messages)
+                    .n(1)
+//                .temperature()
+                    .maxTokens(100)
+                    .logitBias(new HashMap<>())
+                    .build();
+            ChatCompletionResult chatCompletionResult = service.createChatCompletion(chatCompletionRequest);
+            if (chatCompletionResult == null || CollectionUtils.isEmpty(chatCompletionResult.getChoices())) {
+                log.error("gpt return empty {}", ObjectMapperUtils.toJSON(chatCompletionRequest));
+                prometheusUtil.perf("chat_open_ai_return_empty");
+                continue;
+            }
+            return chatCompletionResult.getChoices().get(0).getMessage();
         }
-        return chatCompletionResult.getChoices().get(0).getMessage();
+        return null;
     }
+
 }

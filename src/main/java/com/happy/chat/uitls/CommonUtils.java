@@ -82,8 +82,9 @@ public class CommonUtils {
 
     public static void main(String[] args) {
         String salt = EnDecoderUtil.generateSalt();
-        String enPwd = encryptPwd(salt, "1111");
-        String dePwd = decryptPwd(salt, enPwd);
+        System.out.println(salt);
+        String enPwd = encryptPwd(salt, "flirtopia1234");
+        String dePwd = decryptPwd("dc5db98b597601d53234ea693aa73718", "ziQQ82+r21+P4jBx5EpLSg==");
 
         System.out.println(enPwd);
         System.out.println(dePwd);

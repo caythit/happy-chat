@@ -6,6 +6,6 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 
 public interface OpenAIService {
 
-    ChatMessage requestChatCompletion(String apiToken, List<ChatMessage> messages);
+    ChatMessage requestChatCompletion(List<String> apiTokens, List<ChatMessage> messages);
 
 }

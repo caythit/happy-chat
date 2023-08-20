@@ -161,7 +161,5 @@ public class EmailHelper {
         message.setText(text);
 
         Transport.send(message);
-
-
     }
 }

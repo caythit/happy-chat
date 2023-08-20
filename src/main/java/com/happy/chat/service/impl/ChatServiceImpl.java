@@ -457,8 +457,8 @@ public class ChatServiceImpl implements ChatService {
             return null;
         }
 
-        String apiKey = redisUtil.get(gptApiTokenKey());
-        if (StringUtils.isEmpty(apiKey)) {
+        List<String> apiKeys = redisUtil.range(gptApiTokenKey(), 0, -1);
+        if (CollectionUtils.isEmpty(apiKeys)) {
             log.error("chat gpt apikey empty");
             prometheusUtil.perf(chatPrometheusCounter, "get_gpt_api_key_failed");
             return null;
@@ -479,7 +479,7 @@ public class ChatServiceImpl implements ChatService {
         messages.add(new ChatMessage(ChatMessageRole.USER.value(), currentUserInput));
         log.info("request openai, robot {}, request {} ", robotId, ObjectMapperUtils.toJSON(messages));
 
-        ChatMessage response = openAIService.requestChatCompletion(apiKey, messages);
+        ChatMessage response = openAIService.requestChatCompletion(apiKeys, messages);
         return response == null ? null : response.getContent();
     }
 
