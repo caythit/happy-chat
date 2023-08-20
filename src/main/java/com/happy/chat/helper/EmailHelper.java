@@ -1,6 +1,5 @@
 package com.happy.chat.helper;
 
-import static com.happy.chat.uitls.CommonUtils.decryptPwd;
 import static com.happy.chat.uitls.CommonUtils.randomMailCode;
 
 import java.util.Properties;
@@ -42,8 +41,8 @@ public class EmailHelper {
     private String mailUser;
     @Value("${com.flirtopia.mail.salt}")
     private String mailPwdSalt;
-    @Value("${com.flirtopia.mail.encry-pwd}")
-    private String mailEncryPwd;
+    @Value("${com.flirtopia.mail.app-pwd}")
+    private String mailAppPwd;
     @Value("${com.flirtopia.mail.from}")
     private String mailFrom;
 
@@ -80,7 +79,7 @@ public class EmailHelper {
             // 5分钟有效
             redisUtil.set(CacheKeyProvider.mailCodeKey(email), code, 5, TimeUnit.MINUTES);
             text = text + "\n" + code;
-            sendByTSL(mailUser, decryptPwd(mailPwdSalt, mailEncryPwd), mailFrom, email, subject, text);
+            sendByTSL(mailUser, mailAppPwd, mailFrom, email, subject, text);
             prometheusUtil.perf("send_email_success_" + extra1);
             log.info("sendEmail success {} {}", email, code);
             return ErrorEnum.SUCCESS;
