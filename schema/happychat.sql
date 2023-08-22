@@ -72,20 +72,27 @@ CREATE TABLE `flirtopia_chat` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 支付--
-CREATE TABLE `user_payment_request` (
+CREATE TABLE `payment_request` (
     `id` BIGINT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
     `create_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录创建时间',
     `update_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录更新时间',
-    `session_id` VARCHAR(100) NOT NULL COMMENT '三方sessionId',
-    KEY `session_id` (`session_id`),
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `user_id` VARCHAR(50) DEFAULT NULL COMMENT 'userid',
+    `robot_id` VARCHAR(50) DEFAULT NULL COMMENT 'robotid',
+    `extra_info` text COLLATE utf8mb4_bin COMMENT '额外信息',
+    `session_id` VARCHAR(256) NOT NULL COMMENT '三方sessionId',
+    `state` VARCHAR(20) NOT NULL COMMENT '状态',
+    UNIQUE INDEX `uniq_session_id` (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `user_payment_result` (
+CREATE TABLE `user_subscribe_info` (
     `id` BIGINT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
     `create_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录创建时间',
     `update_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录更新时间',
-    `session_id` VARCHAR(100) NOT NULL COMMENT '三方sessionId',
-    `result` VARCHAR(100) NOT NULL COMMENT '结果',
-    KEY `session_id` (`session_id`),
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `user_id` VARCHAR(50) DEFAULT NULL COMMENT 'userid',
+    `robot_id` VARCHAR(50) DEFAULT NULL COMMENT 'robotid',
+    `expire_mills` BIGINT(11) UNSIGNED NOT NULL COMMENT '到期时间',
+    UNIQUE INDEX `uniq_session_id` (`session_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
 
