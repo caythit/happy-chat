@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.1.4.RELEASE</version>
+        <version>2.3.4.RELEASE</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -18,6 +18,17 @@
     <properties>
         <lombok.version>1.18.20</lombok.version>
         <common.langs.version>3.10</common.langs.version>
+        <prometheus.version>1.5.1</prometheus.version>
+        <google.gson.version>2.8.6</google.gson.version>
+        <stripe.version>22.30.0</stripe.version>
+        <theokanning.openai.gpt3.version>0.15.0</theokanning.openai.gpt3.version>
+        <okhttp3.version>3.12.3</okhttp3.version>
+        <javax.mail.version>1.6.2</javax.mail.version>
+        <commons.collections4.version>4.3</commons.collections4.version>
+        <google.guava.version>18.0</google.guava.version>
+        <commons.pool2.version>2.9.0</commons.pool2.version>
+        <commons.codec.version>1.15</commons.codec.version>
+        <aventrix.jnanoid.version>2.0.0</aventrix.jnanoid.version>
     </properties>
 
     <dependencies>
@@ -64,13 +75,13 @@
         <dependency>
             <groupId>com.aventrix.jnanoid</groupId>
             <artifactId>jnanoid</artifactId>
-            <version>2.0.0</version>
+            <version>${aventrix.jnanoid.version}</version>
         </dependency>
 
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.15</version>
+            <version>${commons.codec.version}</version>
         </dependency>
 
         <dependency>
@@ -90,19 +101,19 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
-            <version>2.9.0</version>
+            <version>${commons.pool2.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>18.0</version>
+            <version>${google.guava.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
-            <version>4.3</version>
+            <version>${commons.collections4.version}</version>
         </dependency>
 
         <dependency>
@@ -113,37 +124,37 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>1.1.4</version>
+            <version>${prometheus.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
-            <version>1.6.2</version>
+            <version>${javax.mail.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>3.12.3</version>
+            <version>${okhttp3.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.theokanning.openai-gpt3-java</groupId>
             <artifactId>service</artifactId>
-            <version>0.15.0</version>
+            <version>${theokanning.openai.gpt3.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.stripe</groupId>
             <artifactId>stripe-java</artifactId>
-            <version>22.30.0</version>
+            <version>${stripe.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.6</version>
+            <version>${google.gson.version}</version>
         </dependency>
     </dependencies>
 

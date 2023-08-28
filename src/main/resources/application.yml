@@ -1,6 +1,12 @@
+# 开启优雅停止 Web 容器，默认为 IMMEDIATE：立即停止
+server:
+  shutdown: graceful
+
 spring:
   application:
     name: Flirtopia
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/Flirtopia?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
