@@ -4,10 +4,7 @@ import static com.happy.chat.constants.Constant.DATA;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +21,7 @@ public class StartupController {
 
     /**
      * 兴趣选择
+     *
      * @return
      */
     @RequestMapping("/selectPrefer")
@@ -34,25 +32,31 @@ public class StartupController {
     }
 
     /**
-     * 下发启动配置相关
+     * 全局配置，包括弹窗等行为
+     *
+     * @return
+     */
+    @RequestMapping("/globalConfig")
+    public Map<String, Object> globalConfig(@RequestParam(value = "ud", required = false) String dummyUid,
+                                            @RequestParam(value = "appver", required = false) String appver) {
+        Map<String, Object> res = ApiResult.ofSuccess();
+        // 返回相关配置
+        res.put(DATA, startupApiHelper.getGlobalConfig(dummyUid, appver));
+
+        return res;
+    }
+
+    /**
+     * 新用户才有，第一次请求
      *
      * @return
      */
     @RequestMapping("/config")
-    public Map<String, Object> config(HttpServletResponse response) {
+    public Map<String, Object> newUserConfig() {
         Map<String, Object> res = ApiResult.ofSuccess();
         // 返回相关配置
         res.put(DATA, startupApiHelper.getConfig());
 
-//        // 成功设置cookie
-//        if (res.get(ERROR_CODE).equals(ErrorEnum.SUCCESS.getErrCode())) {
-//            // 创建一个 cookie对象
-//            Cookie cookie = new Cookie(COOKIE_SESSION_ID, user.getUserId());
-//            cookie.setSecure(true);  //Https 安全cookie
-//            cookie.setMaxAge(365 * 24 * 60 * 60);
-//            //将cookie对象加入response响应
-//            response.addCookie(cookie);
-//        }
         return res;
     }
 }

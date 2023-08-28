@@ -14,4 +14,6 @@ public interface RobotService {
     List<Robot> getAllRobot();
 
     int addRobot(Robot robot);
+
+    String getRobotStripePriceId(String robotId);
 }

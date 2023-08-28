@@ -13,7 +13,8 @@ public interface UserService {
 
     int updateUserPreferInfo(String userId, String preferRobotId);
 
-    int resetUserPwd(String userId, String encryptPwd);
+    int modifyUserPwd(String userId, String encryptPwd);
+    int resetUserPwd(String email, String salt, String encryptPwd);
 
     int rebindEmail(String userId, String email);
     int modifyUserName(String userId, String userName);

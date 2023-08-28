@@ -31,7 +31,6 @@ public class ForgotPasswordController {
     private EmailHelper emailHelper;
 
     // 第一步 输入邮箱，发送邮箱校验码，检查：邮箱是否已被使用，没使用则提示；邮箱格式验证
-    @LoginRequired
     @RequestMapping("/sendEmailCode")
     public Map<String, Object> send(@RequestParam("email") String email) {
         // 验证邮箱 todo 确认subject和text
@@ -69,11 +68,11 @@ public class ForgotPasswordController {
         return ApiResult.ofFail(errorEnum);
     }
 
-    // 重置密码
+    // 重置密码，没登录
     @PostMapping("/reset")
-    public Map<String, Object> reset(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
+    public Map<String, Object> reset(@RequestParam("email") String email,
                                      @RequestParam("newPwd") String pwd) {
-        return userApiHelper.resetPassword(userId, pwd, "forgotPassword");
+        return userApiHelper.forgotResetPassword(email, pwd);
     }
 
 

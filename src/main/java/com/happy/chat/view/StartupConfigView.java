@@ -9,6 +9,7 @@ import lombok.Data;
 
 @Data
 public class StartupConfigView {
+    // 字段没用 写在客户端
     private String logoUrl;
     private String introduceText; // Hello, who would you like to chat with?
     private List<RobotStartupView> pymlRobots;

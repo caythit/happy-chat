@@ -10,8 +10,9 @@ import org.springframework.stereotype.Service;
 
 import com.happy.chat.dao.RobotDao;
 import com.happy.chat.domain.Robot;
-import com.happy.chat.domain.User;
 import com.happy.chat.service.RobotService;
+import com.happy.chat.uitls.CacheKeyProvider;
+import com.happy.chat.uitls.RedisUtil;
 
 @Lazy
 @Service
@@ -19,6 +20,9 @@ public class RobotServiceImpl implements RobotService {
 
     @Autowired
     private RobotDao robotDao;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     @Override
     public Robot getRobotById(String robotId) {
@@ -37,5 +41,10 @@ public class RobotServiceImpl implements RobotService {
     @Override
     public int addRobot(Robot robot) {
         return robotDao.insert(robot);
+    }
+
+    @Override
+    public String getRobotStripePriceId(String robotId) {
+        return redisUtil.get(CacheKeyProvider.robotStripePriceIdKey(robotId));
     }
 }

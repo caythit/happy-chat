@@ -91,7 +91,7 @@ CREATE TABLE `user_subscribe_info` (
     `user_id` VARCHAR(50) DEFAULT NULL COMMENT 'userid',
     `robot_id` VARCHAR(50) DEFAULT NULL COMMENT 'robotid',
     `expire_mills` BIGINT(11) UNSIGNED NOT NULL COMMENT '到期时间',
-    UNIQUE INDEX `uniq_session_id` (`session_id`)
+    UNIQUE INDEX `uniq_user_robot` (`user_id`, `robot_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 

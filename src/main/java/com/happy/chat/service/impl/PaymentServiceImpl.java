@@ -1,5 +1,6 @@
 package com.happy.chat.service.impl;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -13,17 +14,24 @@ import com.happy.chat.dao.PaymentDao;
 import com.happy.chat.domain.PaymentItem;
 import com.happy.chat.domain.UserSubscribeInfo;
 import com.happy.chat.enums.PaymentState;
-import com.happy.chat.model.CheckoutPayment;
+import com.happy.chat.model.CheckoutRequest;
 import com.happy.chat.service.PaymentService;
 import com.happy.chat.uitls.ObjectMapperUtils;
+import com.happy.chat.uitls.PrometheusUtils;
 import com.stripe.model.checkout.Session;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Lazy
 @Service
 public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private PaymentDao paymentDao;
+
+    @Autowired
+    private PrometheusUtils prometheusUtil;
 
     @Override
     public List<String> getUserSubscribeRobotIds(String userId) {
@@ -49,12 +57,12 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public int addPayRequest(CheckoutPayment payment, Session session) {
+    public int addPayRequest(CheckoutRequest payment, Session session) {
         PaymentItem paymentItem = new PaymentItem();
         paymentItem.setUserId(payment.getUserId());
         paymentItem.setRobotId(payment.getRobotId());
-        paymentItem.setSessionId(payment.getUserId());
-        paymentItem.setState(PaymentState.CREATE_SESSION.getState());
+        paymentItem.setSessionId(session.getId());
+        paymentItem.setState(PaymentState.INIT.getState());
 
         Map<String, String> extraMap = ImmutableMap.of("request", ObjectMapperUtils.toJSON(payment));
         paymentItem.setExtraInfo(ObjectMapperUtils.toJSON(extraMap));
@@ -65,12 +73,40 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    public int addPayRequest(String userId, String robotId, String id) {
+        PaymentItem paymentItem = new PaymentItem();
+        paymentItem.setUserId(userId);
+        paymentItem.setRobotId(robotId);
+        paymentItem.setSessionId(id);
+        paymentItem.setState(PaymentState.INIT.getState());
+
+        paymentItem.setCreateTime(System.currentTimeMillis());
+        paymentItem.setUpdateTime(System.currentTimeMillis());
+
+        return paymentDao.insertRequest(paymentItem);
+    }
+
+    @Override
     public boolean handleUserPaymentSuccess(String sessionId) {
-        int update = paymentDao.updateRequestState(sessionId, PaymentState.SUCCESS.getState());
-        if (update <= 0) {
+        // 先拿到sessionId对应的用户和robot信息
+        PaymentItem paymentItem = paymentDao.getPaymentRequest(sessionId);
+        if (paymentItem == null) {
+            log.error("can not find payment request {}", sessionId);
             return false;
         }
-        // todo 更新下用户的订阅表信息
+        // 更新付款请求表状态
+        int update = paymentDao.updateRequestState(sessionId, PaymentState.SUCCESS.getState());
+        if (update <= 0) {
+            log.error("updateRequestState failed {}", sessionId);
+            return false;
+        }
+        long expire = System.currentTimeMillis() + Duration.ofDays(30).toMillis();
+        // 写入/更新下用户的订阅表信息
+        update = paymentDao.updateUserSubscribeRobot(paymentItem.getUserId(), paymentItem.getRobotId(), expire);
+        if (update <= 0) {
+            log.error("updateUserSubscribeRobot failed {} {} {}", paymentItem.getUserId(), paymentItem.getRobotId(), sessionId);
+            return false;
+        }
         return true;
     }
 }

@@ -49,8 +49,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int resetUserPwd(String userId, String encryptPwd) {
+    public int modifyUserPwd(String userId, String encryptPwd) {
         return userDao.updateUserPassword(userId, encryptPwd);
+    }
+
+    @Override
+    public int resetUserPwd(String email, String salt, String encryptPwd) {
+        return userDao.resetUserPassword(email, salt, encryptPwd);
     }
 
     @Override

@@ -112,7 +112,7 @@ public class UserController {
             return ApiResult.ofFail(apiErrorEnum);
         }
         // 校验新密码格式 同时重置密码
-        return useHelper.resetPassword(userId, newPwd, "modifyPassword");
+        return useHelper.modifyPassword(userId, newPwd);
     }
 
 }

@@ -160,32 +160,53 @@ public class UserApiHelper {
         return ApiResult.ofSuccess();
     }
 
-
-    // 用于修改密码和忘记密码的最后一步-重置密码
-    public Map<String, Object> resetPassword(String userId, String pwd, String purpose) {
+    //
+    public Map<String, Object> modifyPassword(String userId, String pwd) {
         // 检查新密码的格式符合要求
         if (!CommonUtils.passwordPatternValid(pwd)) {
-            log.error("{} resetPassword failed by pattern invalid {}", purpose, userId);
-            prometheusUtil.perf("reset_password_failed_by_pattern_invalid");
+            log.error("modifyPassword failed by pattern invalid {}", userId);
+            prometheusUtil.perf("modify_password_failed_by_pattern_invalid");
             return ApiResult.ofFail(ErrorEnum.PASSWORD_PATTERN_INVALID);
         }
         User user = userService.getUser(UserGetRequest.builder()
                 .userId(userId)
                 .build());
         if (user == null) {
-            log.error("{} resetPassword failed by user null {}", purpose, userId);
-            prometheusUtil.perf("reset_password_failed_by_user_not_exist");
+            log.error("modifyPassword failed by user null {}", userId);
+            prometheusUtil.perf("modify_password_failed_by_user_not_exist");
             return ApiResult.ofFail(ErrorEnum.USER_NOT_EXIST);
         }
 
         String encryptPwd = CommonUtils.encryptPwd(user.getPwdSalt(), pwd);
-        int effectRow = userService.resetUserPwd(userId, encryptPwd);
+        int effectRow = userService.modifyUserPwd(userId, encryptPwd);
         if (effectRow <= 0) {
-            log.error("{} resetPassword failed by insert db {}", purpose, userId);
+            log.error("modifyPassword failed by insert db {}", userId);
             prometheusUtil.perf("reset_password_failed_by_db_error");
             return ApiResult.ofFail(ErrorEnum.RESET_PASSWORD_FAIL);
         }
-        prometheusUtil.perf("reset_password_success");
+        prometheusUtil.perf("modify_password_success");
+        return ApiResult.ofSuccess();
+    }
+
+
+    public Map<String, Object> forgotResetPassword(String email, String pwd) {
+        // 检查新密码的格式符合要求
+        if (!CommonUtils.passwordPatternValid(pwd)) {
+            log.error("forgotResetPassword failed by pattern invalid {}", email);
+            prometheusUtil.perf("forgot_password_failed_by_pattern_invalid");
+            return ApiResult.ofFail(ErrorEnum.PASSWORD_PATTERN_INVALID);
+        }
+
+        // 生成新盐
+        String salt = generateSalt();
+        String encryptPwd = CommonUtils.encryptPwd(salt, pwd);
+        int effectRow = userService.resetUserPwd(email, salt, encryptPwd);
+        if (effectRow <= 0) {
+            log.error("forgotResetPassword failed by insert db {}", email);
+            prometheusUtil.perf("reset_password_failed_by_db_error");
+            return ApiResult.ofFail(ErrorEnum.RESET_PASSWORD_FAIL);
+        }
+        prometheusUtil.perf("forgot_reset_password_success");
         return ApiResult.ofSuccess();
     }
 

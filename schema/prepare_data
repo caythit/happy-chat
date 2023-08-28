@@ -115,7 +115,7 @@ insert into robot_prompt(robot_id, prompt_version, prompt_info) values('rb_test1
     聊天普通版gpt警报阈值次数 默认3次 所有AI公用。set flirtopia:userChatgptWarnMaxCount "3"
     聊天普通版gpt警报未达到阈值时系统提示文案，单条，所有AI公用。set flirtopia:chatWarnWordKey "xxxx"
     用户进入快乐模型过期时间，用作退场机制，逻辑="当前时间减去最后一次进入快乐模型时间是否超过过期时间"，默认5分钟。set flirtopia:userExitHappyModelExpireMills "300000"
-
+    每个机器人对应的stripe priceId配置。set robotStripePriceId:xxx "xxx"
 待确认/硬编码数据：
     发送邮箱时的subject和text。
     企业邮箱，账户和密码

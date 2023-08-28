@@ -22,6 +22,7 @@ import com.happy.chat.uitls.CommonUtils;
 import com.happy.chat.uitls.ObjectMapperUtils;
 import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
+import com.happy.chat.view.GlobalConfigView;
 import com.happy.chat.view.StartupConfigView;
 import com.happy.chat.view.StartupConfigView.RobotStartupView;
 
@@ -114,5 +115,13 @@ public class StartupApiHelper {
         // 打点
         prometheusUtil.perf("user_prefer_info_success");
         return ApiResult.ofSuccess();
+    }
+
+    public GlobalConfigView getGlobalConfig(String dummyUid, String appver) {
+        GlobalConfigView view = new GlobalConfigView();
+
+        GlobalConfigView.UpdateDialog updateDialog = new GlobalConfigView.UpdateDialog();
+        view.setUpdateDialog(updateDialog);
+        return view;
     }
 }

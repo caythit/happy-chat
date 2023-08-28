@@ -3,7 +3,7 @@ package com.happy.chat.model;
 import lombok.Data;
 
 @Data
-public class CheckoutPayment {
+public class CheckoutRequest {
     private String userId;
     private String robotId;
     // our success and cancel url stripe will redirect to this links

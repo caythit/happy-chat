@@ -27,7 +27,8 @@ public enum ErrorEnum {
     ROBOT_NOT_EXIST(70001, "AI不存在"),
 
     CHAT_NO_RESP(80001, "chat无响应"),
-    STRIPE_CREATE_CHECKOUT_SESSION_FAILED(90001, "stripe创建session失败"),
+    STRIPE_PRICE_RETRIEVE_FAILED(90001, "stripe price获取失败"),
+    STRIPE_CREATE_SESSION_FAILED(90002, "stripe创建session失败"),
 
 
     ;

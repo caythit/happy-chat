@@ -1,7 +1,9 @@
 package com.happy.chat.enums;
 
 public enum PaymentState {
-    CREATE_SESSION("create_session"),
+    INIT("init"),
+
+    FAILED("failed"),
     SUCCESS("success"),
     ;
 

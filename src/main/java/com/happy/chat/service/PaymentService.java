@@ -2,7 +2,7 @@ package com.happy.chat.service;
 
 import java.util.List;
 
-import com.happy.chat.model.CheckoutPayment;
+import com.happy.chat.model.CheckoutRequest;
 import com.stripe.model.checkout.Session;
 
 public interface PaymentService {
@@ -10,7 +10,9 @@ public interface PaymentService {
 
     boolean userHasPayedRobot(String userId, String robotId);
 
-    int addPayRequest(CheckoutPayment payment, Session session);
+    int addPayRequest(CheckoutRequest payment, Session session);
 
     boolean handleUserPaymentSuccess(String sessionId);
+
+    int addPayRequest(String userId, String robotId, String id);
 }

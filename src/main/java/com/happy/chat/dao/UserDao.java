@@ -139,4 +139,15 @@ public class UserDao {
         params.addValue("userId", userId);
         return jdbcTemplate.update(sql, params);
     }
+
+    public int resetUserPassword(String email, String salt, String encryptPwd) {
+        String sql = "update " + TABLE_NAME
+                + " set pwd_salt = :salt, user_pwd = :pwd where email = :email";
+        MapSqlParameterSource params = new MapSqlParameterSource();
+
+        params.addValue("salt", salt);
+        params.addValue("pwd", encryptPwd);
+        params.addValue("email", email);
+        return jdbcTemplate.update(sql, params);
+    }
 }
