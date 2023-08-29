@@ -1,6 +1,7 @@
 package com.happy.chat.service.impl;
 
 import static com.happy.chat.constants.Constant.CHAT_FROM_USER;
+import static com.happy.chat.uitls.CacheKeyProvider.chatFinishPayTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSystemTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayTipsKey;
@@ -362,7 +363,7 @@ public class ChatServiceImpl implements ChatService {
 
     // 已付费提示
     private String getAlreadyPayTips() {
-        List<String> results = redisUtil.range(chatUnPayTipsKey(), 0, -1);
+        List<String> results = redisUtil.range(chatFinishPayTipsKey(), 0, -1);
         if (CollectionUtils.isEmpty(results)) {
             log.error("robot already pay tips empty");
             prometheusUtil.perf(chatPrometheusCounter, "get_robot_already_pay_tips_empty");
