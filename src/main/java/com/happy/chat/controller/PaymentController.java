@@ -98,7 +98,7 @@ public class PaymentController {
                 prometheusUtil.perf("stripe_add_pay_request_failed_by_db_" + robotId);
                 return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
             }
-            result.put(DATA, ObjectMapperUtils.toJSON(paymentIntent));
+            result.put(DATA, paymentIntent.getId());
             return result;
         } catch (Exception e) {
             log.error("createCheckoutSession exception {} {}", userId, robotId, e);
@@ -195,8 +195,8 @@ public class PaymentController {
         }
 
         // todo update payment state，chat go
-        if ("checkout.session.async_payment_succeeded".equals(event.getType())) {
-            log.info("handle checkout.session.async_payment_succeeded event");
+        if ("payment_intent.succeeded".equals(event.getType())) {
+            log.info("handle payment_intent.succeeded event");
 
             Session session = (Session) stripeObject;
             String sessionId = session.getId();
