@@ -82,12 +82,6 @@ public class PaymentController {
                 return ApiResult.ofFail(ErrorEnum.STRIPE_PRICE_RETRIEVE_FAILED);
             }
             PaymentIntent paymentIntent = PaymentIntent.create(PaymentIntentCreateParams.builder()
-                    .setAutomaticPaymentMethods(
-                            PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-                                    .setEnabled(true)
-                                    .build()
-                    )
-                    .addPaymentMethodType("card")
                     .setCurrency(price.getCurrency())
                     .setAmount(price.getUnitAmount())
                     .build());
