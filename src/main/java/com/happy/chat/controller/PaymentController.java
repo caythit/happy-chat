@@ -83,7 +83,7 @@ public class PaymentController {
                     .setAmount(price.getUnitAmount())
                     .build());
             // insert request 失败了怎么弄？？？
-            int effect = paymentService.addPayRequest(userId, robotId, paymentIntent.getId(), ObjectMapperUtils.toJSON(price));
+            int effect = paymentService.addPayRequest(userId, robotId, paymentIntent.getId());
             if (effect <= 0) {
                 log.error("addPayRequest failed {} {} {}", userId, robotId, ObjectMapperUtils.toJSON(paymentIntent));
                 prometheusUtil.perf("stripe_add_pay_request_failed_by_db_" + robotId);

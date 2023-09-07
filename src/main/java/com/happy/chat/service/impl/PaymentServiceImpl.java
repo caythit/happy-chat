@@ -75,13 +75,12 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public int addPayRequest(String userId, String robotId, String id, String extraInfo) {
+    public int addPayRequest(String userId, String robotId, String id) {
         PaymentItem paymentItem = new PaymentItem();
         paymentItem.setUserId(userId);
         paymentItem.setRobotId(robotId);
         paymentItem.setSessionId(id);
         paymentItem.setState(PaymentState.INIT.getState());
-        paymentItem.setExtraInfo(extraInfo);
 
         paymentItem.setCreateTime(System.currentTimeMillis());
         paymentItem.setUpdateTime(System.currentTimeMillis());

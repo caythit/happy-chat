@@ -14,5 +14,5 @@ public interface PaymentService {
 
     boolean handleUserPaymentSuccess(String sessionId);
 
-    int addPayRequest(String userId, String robotId, String id, String extraInfo);
+    int addPayRequest(String userId, String robotId, String id);
 }
