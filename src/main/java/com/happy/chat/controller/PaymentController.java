@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/rest/h/payment")
 public class PaymentController {
 
-    private final String defaultPriceId = "price_1NWM8CBegHkiPVmE5HIUDs43";
+    private final String defaultPriceId = "price_1NiCirBegHkiPVmE9hDFX5gJ";
     @Autowired
     private PrometheusUtils prometheusUtil;
 
