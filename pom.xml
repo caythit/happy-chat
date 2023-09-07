@@ -19,7 +19,7 @@
         <lombok.version>1.18.20</lombok.version>
         <common.langs.version>3.10</common.langs.version>
         <prometheus.version>1.5.1</prometheus.version>
-        <google.gson.version>2.8.6</google.gson.version>
+        <google.gson.version>2.9.1</google.gson.version>
         <stripe.version>22.30.0</stripe.version>
         <theokanning.openai.gpt3.version>0.15.0</theokanning.openai.gpt3.version>
         <okhttp3.version>3.12.3</okhttp3.version>
