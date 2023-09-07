@@ -94,7 +94,8 @@ public class PaymentController {
                     .requestId(paymentIntent.getId())
                     .priceId(priceId)
                     .currency(price.getCurrency())
-                    .unitAmount(String.valueOf(price.getUnitAmount())));
+                    .unitAmount(String.valueOf(price.getUnitAmount()))
+                    .build());
             return result;
         } catch (Exception e) {
             log.error("createPaymentIntent exception {} {}", userId, robotId, e);
