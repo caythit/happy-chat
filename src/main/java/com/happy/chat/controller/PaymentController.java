@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.JsonSyntaxException;
 import com.happy.chat.enums.ErrorEnum;
 import com.happy.chat.exception.ServiceException;
-import com.happy.chat.model.CheckoutRequest;
 import com.happy.chat.service.PaymentService;
 import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
@@ -37,7 +35,6 @@ import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
-import com.stripe.param.checkout.SessionCreateParams;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -86,7 +83,7 @@ public class PaymentController {
                     .setAmount(price.getUnitAmount())
                     .build());
             // insert request 失败了怎么弄？？？
-            int effect = paymentService.addPayRequest(userId, robotId, paymentIntent.getId());
+            int effect = paymentService.addPayRequest(userId, robotId, paymentIntent.getId(), ObjectMapperUtils.toJSON(price));
             if (effect <= 0) {
                 log.error("addPayRequest failed {} {} {}", userId, robotId, ObjectMapperUtils.toJSON(paymentIntent));
                 prometheusUtil.perf("stripe_add_pay_request_failed_by_db_" + robotId);
@@ -101,47 +98,47 @@ public class PaymentController {
         }
     }
 
-    // 调用Stripe来产生SessionId
-    @RequestMapping("/create_checkout_session")
-    @Deprecated
-    public Map<String, Object> createCheckoutSession(@RequestBody CheckoutRequest request) {
-        // 类似于price_1NhPYZBegHkiPVmEEH5lxC8Q
-        Stripe.apiKey = privateKey;
-        Map<String, Object> result = ApiResult.ofSuccess();
-        try {
-            SessionCreateParams params =
-                    SessionCreateParams.builder()
-                            .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
-                            .setMode(SessionCreateParams.Mode.PAYMENT)
-                            .setSuccessUrl(request.getSuccessUrl())
-                            .setCancelUrl(request.getCancelUrl())
-                            .setAutomaticTax(
-                                    SessionCreateParams.AutomaticTax.builder()
-                                            .setEnabled(true)
-                                            .build())
-                            .addLineItem(
-                                    SessionCreateParams.LineItem.builder()
-                                            .setQuantity(request.getQuantity())
-                                            // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                                            .setPrice(request.getPriceId())
-                                            .build())
-                            .build();
-            Session session = Session.create(params);
-            // insert request 失败了怎么弄？？？
-            int effect = paymentService.addPayRequest(request, session);
-            if (effect <= 0) {
-                log.error("addPayRequest failed {}", ObjectMapperUtils.toJSON(request));
-                prometheusUtil.perf("stripe_create_checkout_session_failed_by_db_" + request.getPriceId());
-                return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
-            }
-            result.put(DATA, session.getId());
-            return result;
-        } catch (Exception e) {
-            log.error("createCheckoutSession exception", e);
-            prometheusUtil.perf("stripe_create_checkout_session_exception_" + request.getPriceId());
-            throw ServiceException.ofMessage(ErrorEnum.STRIPE_CREATE_SESSION_FAILED.getErrCode(), e.getMessage());
-        }
-    }
+//    // 调用Stripe来产生SessionId
+//    @RequestMapping("/create_checkout_session")
+//    @Deprecated
+//    public Map<String, Object> createCheckoutSession(@RequestBody CheckoutRequest request) {
+//        // 类似于price_1NhPYZBegHkiPVmEEH5lxC8Q
+//        Stripe.apiKey = privateKey;
+//        Map<String, Object> result = ApiResult.ofSuccess();
+//        try {
+//            SessionCreateParams params =
+//                    SessionCreateParams.builder()
+//                            .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+//                            .setMode(SessionCreateParams.Mode.PAYMENT)
+//                            .setSuccessUrl(request.getSuccessUrl())
+//                            .setCancelUrl(request.getCancelUrl())
+//                            .setAutomaticTax(
+//                                    SessionCreateParams.AutomaticTax.builder()
+//                                            .setEnabled(true)
+//                                            .build())
+//                            .addLineItem(
+//                                    SessionCreateParams.LineItem.builder()
+//                                            .setQuantity(request.getQuantity())
+//                                            // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+//                                            .setPrice(request.getPriceId())
+//                                            .build())
+//                            .build();
+//            Session session = Session.create(params);
+//            // insert request 失败了怎么弄？？？
+//            int effect = paymentService.addPayRequest(request, session);
+//            if (effect <= 0) {
+//                log.error("addPayRequest failed {}", ObjectMapperUtils.toJSON(request));
+//                prometheusUtil.perf("stripe_create_checkout_session_failed_by_db_" + request.getPriceId());
+//                return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
+//            }
+//            result.put(DATA, session.getId());
+//            return result;
+//        } catch (Exception e) {
+//            log.error("createCheckoutSession exception", e);
+//            prometheusUtil.perf("stripe_create_checkout_session_exception_" + request.getPriceId());
+//            throw ServiceException.ofMessage(ErrorEnum.STRIPE_CREATE_SESSION_FAILED.getErrCode(), e.getMessage());
+//        }
+//    }
 
 
     // 回调结果处理
@@ -190,10 +187,10 @@ public class PaymentController {
 
         // todo update payment state，chat go
         if ("payment_intent.succeeded".equals(event.getType())) {
-            log.info("handle payment_intent.succeeded event");
-
             Session session = (Session) stripeObject;
             String sessionId = session.getId();
+            log.info("handle payment_intent.succeeded event {}", sessionId);
+
             boolean ok = paymentService.handleUserPaymentSuccess(sessionId);
             if (!ok) {
                 log.error("updatePayRequest failed {}", sessionId);

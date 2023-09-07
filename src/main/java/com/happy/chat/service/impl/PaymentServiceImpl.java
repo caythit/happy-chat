@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
 import com.happy.chat.dao.PaymentDao;
@@ -73,12 +75,13 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public int addPayRequest(String userId, String robotId, String id) {
+    public int addPayRequest(String userId, String robotId, String id, String extraInfo) {
         PaymentItem paymentItem = new PaymentItem();
         paymentItem.setUserId(userId);
         paymentItem.setRobotId(robotId);
         paymentItem.setSessionId(id);
         paymentItem.setState(PaymentState.INIT.getState());
+        paymentItem.setExtraInfo(extraInfo);
 
         paymentItem.setCreateTime(System.currentTimeMillis());
         paymentItem.setUpdateTime(System.currentTimeMillis());
@@ -87,6 +90,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class, propagation = Propagation.REQUIRES_NEW)
     public boolean handleUserPaymentSuccess(String sessionId) {
         // 先拿到sessionId对应的用户和robot信息
         PaymentItem paymentItem = paymentDao.getPaymentRequest(sessionId);
@@ -94,18 +98,18 @@ public class PaymentServiceImpl implements PaymentService {
             log.error("can not find payment request {}", sessionId);
             return false;
         }
-        // 更新付款请求表状态
-        int update = paymentDao.updateRequestState(sessionId, PaymentState.SUCCESS.getState());
-        if (update <= 0) {
-            log.error("updateRequestState failed {}", sessionId);
-            return false;
-        }
         long expire = System.currentTimeMillis() + Duration.ofDays(30).toMillis();
         // 写入/更新下用户的订阅表信息
-        update = paymentDao.updateUserSubscribeRobot(paymentItem.getUserId(), paymentItem.getRobotId(), expire);
+        int update = paymentDao.updateUserSubscribeRobot(paymentItem.getUserId(), paymentItem.getRobotId(), expire);
         if (update <= 0) {
             log.error("updateUserSubscribeRobot failed {} {} {}", paymentItem.getUserId(), paymentItem.getRobotId(), sessionId);
             return false;
+        }
+        // 更新付款请求表状态
+        update = paymentDao.updateRequestState(sessionId, PaymentState.SUCCESS.getState());
+        if (update <= 0) {
+            log.error("updateRequestState failed {}", sessionId);
+            throw new RuntimeException("更新状态失败，回滚!");
         }
         return true;
     }

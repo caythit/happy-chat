@@ -26,6 +26,7 @@ import com.happy.chat.domain.Robot;
 import com.happy.chat.enums.ErrorEnum;
 import com.happy.chat.helper.EmailHelper;
 import com.happy.chat.model.StartupConfigModel;
+import com.happy.chat.service.PaymentService;
 import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.ObjectMapperUtils;
@@ -51,6 +52,9 @@ public class TestController {
 
     @Autowired
     private EmailHelper emailHelper;
+
+    @Autowired
+    private PaymentService paymentService;
 
 
     @RequestMapping("/test")
@@ -162,4 +166,13 @@ public class TestController {
         }
         return ApiResult.ofFail(errorEnum);
     }
+
+    @RequestMapping("/handleUserPaymentSuccess")
+    public Map<String, Object> handleUserPaymentSuccess(@RequestParam("sessionId") String sessionId) {
+        Map<String, Object> result = ApiResult.ofSuccess();
+        result.put("result", paymentService.handleUserPaymentSuccess(sessionId));
+        return result;
+    }
+
+
 }
