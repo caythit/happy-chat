@@ -101,7 +101,7 @@ public class PaymentController {
             result.put(DATA, paymentIntent.getId());
             return result;
         } catch (Exception e) {
-            log.error("createCheckoutSession exception {} {}", userId, robotId, e);
+            log.error("createPaymentIntent exception {} {}", userId, robotId, e);
             prometheusUtil.perf("stripe_create_request_exception_" + robotId);
             throw ServiceException.ofMessage(ErrorEnum.STRIPE_CREATE_SESSION_FAILED.getErrCode(), e.getMessage());
         }
