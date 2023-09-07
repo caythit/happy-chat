@@ -25,6 +25,7 @@ import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.ObjectMapperUtils;
 import com.happy.chat.uitls.PrometheusUtils;
+import com.happy.chat.view.PaymentIntentView;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
@@ -89,7 +90,11 @@ public class PaymentController {
                 prometheusUtil.perf("stripe_add_pay_request_failed_by_db_" + robotId);
                 return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
             }
-            result.put(DATA, paymentIntent.getId());
+            result.put(DATA, PaymentIntentView.builder()
+                    .requestId(paymentIntent.getId())
+                    .priceId(priceId)
+                    .currency(price.getCurrency())
+                    .unitAmount(String.valueOf(price.getUnitAmount())));
             return result;
         } catch (Exception e) {
             log.error("createPaymentIntent exception {} {}", userId, robotId, e);
