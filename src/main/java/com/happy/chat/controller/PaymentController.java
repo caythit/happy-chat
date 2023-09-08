@@ -62,7 +62,7 @@ public class PaymentController {
 
     // 调用Stripe来产生SessionId
     @PostMapping("/create_payment_intent")
-    public Map<String, Object> createPaymentIntent(@RequestParam("userId") String userId,
+    public Map<String, Object> createPaymentIntent(@RequestParam("ud") String userId,
                                                    @RequestParam("robotId") String robotId) {
         Stripe.apiKey = privateKey;
         Map<String, Object> result = ApiResult.ofSuccess();

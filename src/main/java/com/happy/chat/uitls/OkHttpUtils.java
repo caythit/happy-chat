@@ -23,31 +23,25 @@ public class OkHttpUtils {
             .build();
 
 
-    public Response postJson(String url, String json) {
-        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
-        RequestBody body = RequestBody.create(mediaType, json);
+    public Response postJson(String url, String json) throws Exception {
+        log.info("json={}", json);
+
+        RequestBody body = RequestBody.create(MediaType.get("application/json; charset=utf-8"), json);
         Request request = new Request.Builder()
                 .url(url)
                 .method("POST", body)
-                .addHeader("Content-Type", "application/x-www-form-urlencoded")
-                .addHeader("Authorization",
-                        "Basic QUNmNDI2NmMxNWUzZTMyZGY1ZDZlMTNjZjc1NWRiMWJiNzo5NWFjM2VhY2EyMjQ5Y2EwM2QzZjNiM2E1ZmUyZDQyOA==")
+                .addHeader("Content-Type", "application/json; charset=utf-8")
                 .build();
-        try {
-            Response response = DEFAULT_CLIENT.newCall(request).execute();
-            //耗时监控
-            if (response.isSuccessful()) {
-                prometheusUtil.perf("http_request_succss");
-            } else {
-                prometheusUtil.perf("http_request_failed_" + response.code());
-            }
-            return response;
 
-        } catch (Exception e) {
-            log.error("okhttp exception", e);
-            prometheusUtil.perf("http_request_exception");
-            return null;
+        Response response = DEFAULT_CLIENT.newCall(request).execute();
+        //耗时监控
+        if (response.isSuccessful()) {
+            prometheusUtil.perf("http_request_succss");
+        } else {
+            prometheusUtil.perf("http_request_failed_" + response.code());
         }
+        return response;
+
     }
 }
 

@@ -52,7 +52,6 @@ public class OpenAIServiceImpl implements OpenAIService {
             ChatCompletionResult chatCompletionResult = service.createChatCompletion(chatCompletionRequest);
             if (chatCompletionResult == null || CollectionUtils.isEmpty(chatCompletionResult.getChoices())) {
                 log.error("gpt return empty {}", ObjectMapperUtils.toJSON(chatCompletionRequest));
-                prometheusUtil.perf("chat_open_ai_return_empty");
                 continue;
             }
             return chatCompletionResult.getChoices().get(0).getMessage();

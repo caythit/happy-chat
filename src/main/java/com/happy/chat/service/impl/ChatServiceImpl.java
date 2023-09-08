@@ -17,6 +17,7 @@ import static com.happy.chat.uitls.CacheKeyProvider.userExitHappyModelExpireMill
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,6 +31,7 @@ import com.happy.chat.dao.FlirtopiaChatDao;
 import com.happy.chat.domain.FlirtopiaChat;
 import com.happy.chat.domain.IceBreakWord;
 import com.happy.chat.model.ChatResponse;
+import com.happy.chat.model.HappyModelRequest;
 import com.happy.chat.service.ChatService;
 import com.happy.chat.service.OpenAIService;
 import com.happy.chat.service.PaymentService;
@@ -43,6 +45,7 @@ import com.theokanning.openai.completion.chat.ChatMessageRole;
 
 import io.prometheus.client.Counter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Response;
 
 @Lazy
 @Service
@@ -60,6 +63,7 @@ public class ChatServiceImpl implements ChatService {
     private final String normalVersionGpt = "normal";
 
     private final String advancedVersionGpt = "advanced";
+    private final String happyModelHttpUrl = "http://18.219.187.222:5000/chat";
 
     @Autowired
     private FlirtopiaChatDao flirtopiaChatDao;
@@ -196,7 +200,7 @@ public class ChatServiceImpl implements ChatService {
      */
     private ChatResponse getRobotUnPaidRespFromHappyModel(String userId, String robotId,
                                                           String content, List<FlirtopiaChat> userHistoryMessages) {
-        String aiRespContent = requestHappyModel(content, userHistoryMessages);
+        String aiRespContent = requestHappyModel(robotId, content, userHistoryMessages);
         ChatResponse chatResponse = buildChatResponse(userId, robotId, aiRespContent);
 
         // 来自快乐模型的回复 要更新下时间
@@ -224,7 +228,7 @@ public class ChatServiceImpl implements ChatService {
 
         // 触发警报，请求快乐模型
         if (chatgptRespHasWarn(respContent)) {
-            respContent = requestHappyModel(content, userHistoryMessages);
+            respContent = requestHappyModel(robotId, content, userHistoryMessages);
             fromHappyModel = true;
         }
 
@@ -258,7 +262,7 @@ public class ChatServiceImpl implements ChatService {
             //  超过3次，请求快乐模型
             boolean overWarnCount = overGptWarnCount(userId, robotId);
             if (overWarnCount) {
-                respContent = requestHappyModel(content, userHistoryMessages);
+                respContent = requestHappyModel(robotId, content, userHistoryMessages);
                 fromHappyModel = true;
             } else {
                 // warn次数+1
@@ -301,7 +305,7 @@ public class ChatServiceImpl implements ChatService {
         if (timeForExit) {
             aiRespContent = requestChatgpt(robotId, advancedVersionGpt, userReqContent, userHistoryMessages);
         } else {
-            aiRespContent = requestHappyModel(userReqContent, userHistoryMessages);
+            aiRespContent = requestHappyModel(robotId, userReqContent, userHistoryMessages);
             fromHappyModel = true;
         }
 
@@ -431,11 +435,46 @@ public class ChatServiceImpl implements ChatService {
         return false;
     }
 
-    // todo
-    private String requestHappyModel(String currentUserInput, List<FlirtopiaChat> historyChats) {
-        log.info("requestHappyModel currentUserInput={}, historyChats={}", currentUserInput, ObjectMapperUtils.toJSON(historyChats));
+    private String requestHappyModel(String robotId, String currentUserInput, List<FlirtopiaChat> historyChats) {
+        HappyModelRequest happyModelRequest = HappyModelRequest.builder()
+                .temperature(0.1)
+                .maxNewToken(100)
+                .historyMaxLen(1000)
+                .topP(0.85)
+                .userId(robotId)
+                .current(HappyModelRequest.Current.builder()
+                        .u(currentUserInput)
+                        .build())
+                .build();
 
-        //        Response response = okHttpUtils.postJson();
+        List<HappyModelRequest.History> histories = new ArrayList<>();
+
+        // 转换成格式
+        historyChats.forEach(historyChat -> {
+            if (CHAT_FROM_USER.equals(historyChat.getMessageFrom())) {
+                histories.add(HappyModelRequest.History.builder()
+                        .u(historyChat.getContent())
+                        .build());
+            } else {
+                histories.add(HappyModelRequest.History.builder()
+                        .b(historyChat.getContent())
+                        .build());
+            }
+        });
+        happyModelRequest.setHistory(histories);
+        try {
+            Response response = okHttpUtils.postJson(happyModelHttpUrl, ObjectMapperUtils.toJSON(happyModelRequest));
+            String json;
+            if (response != null && response.body() != null) {
+                json = response.body().string();
+                log.info("json {}", json);
+                Map<String, String> jsonMap = ObjectMapperUtils.fromJSON(json, Map.class, String.class, String.class);
+                return jsonMap.get("response");
+            }
+        } catch (Exception e) {
+            log.error("requestHappyModel exception", e);
+            prometheusUtil.perf(chatPrometheusCounter, "chat_happy_model_return_empty_" + robotId);
+        }
         return null;
     }
 
@@ -481,7 +520,11 @@ public class ChatServiceImpl implements ChatService {
         log.info("request openai, robot {}, request {} ", robotId, ObjectMapperUtils.toJSON(messages));
 
         ChatMessage response = openAIService.requestChatCompletion(apiKeys, messages);
-        return response == null ? null : response.getContent();
+        if (response == null) {
+            prometheusUtil.perf(chatPrometheusCounter, "chat_open_ai_return_empty_" + robotId);
+            return null;
+        }
+        return response.getContent();
     }
 
     private boolean hasSensitiveWord(String content) {

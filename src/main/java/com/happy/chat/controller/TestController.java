@@ -1,5 +1,6 @@
 package com.happy.chat.controller;
 
+import static com.happy.chat.constants.Constant.CHAT_FROM_USER;
 import static com.happy.chat.uitls.CacheKeyProvider.chatFinishPayTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSystemTipsKey;
@@ -12,6 +13,9 @@ import static com.happy.chat.uitls.CacheKeyProvider.userChatgptWarnMaxCountKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userEnterChatgptAdvanceModelThresholdKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userExitHappyModelExpireMillsKey;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -22,19 +26,24 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.happy.chat.domain.FlirtopiaChat;
 import com.happy.chat.domain.Robot;
 import com.happy.chat.enums.ErrorEnum;
 import com.happy.chat.helper.EmailHelper;
+import com.happy.chat.model.HappyModelRequest;
 import com.happy.chat.model.StartupConfigModel;
+import com.happy.chat.service.ChatService;
 import com.happy.chat.service.PaymentService;
 import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.ObjectMapperUtils;
+import com.happy.chat.uitls.OkHttpUtils;
 import com.happy.chat.uitls.PrometheusUtils;
 import com.happy.chat.uitls.RedisUtil;
 import com.happy.chat.view.StartupConfigView;
 
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.Response;
 
 @RestController
 @RequestMapping("/rest/h/test")
@@ -55,6 +64,12 @@ public class TestController {
 
     @Autowired
     private PaymentService paymentService;
+
+    @Autowired
+    private OkHttpUtils okHttpUtils;
+
+    @Autowired
+    private ChatService chatService;
 
 
     @RequestMapping("/test")
@@ -171,6 +186,57 @@ public class TestController {
     public Map<String, Object> handleUserPaymentSuccess(@RequestParam("sessionId") String sessionId) {
         Map<String, Object> result = ApiResult.ofSuccess();
         result.put("result", paymentService.handleUserPaymentSuccess(sessionId));
+        return result;
+    }
+
+
+    @RequestMapping("/requestHappyModel")
+    public Map<String, Object> requestHappyModel(@RequestParam("userId") String userId,
+                                                 @RequestParam("robotId") String robotId,
+                                                 @RequestParam("currentUserInput") String currentUserInput) {
+        Map<String, Object> result = ApiResult.ofSuccess();
+
+        List<FlirtopiaChat> historyChats = chatService.getUserRobotHistoryChats(userId, robotId).stream()
+                .sorted(Comparator.comparing(FlirtopiaChat::getCreateTime)).collect(Collectors.toList());
+
+        HappyModelRequest happyModelRequest = HappyModelRequest.builder()
+                .temperature(0.1)
+                .maxNewToken(100)
+                .historyMaxLen(1000)
+                .topP(0.85)
+                .userId(robotId)
+                .current(HappyModelRequest.Current.builder()
+                        .u(currentUserInput)
+                        .build())
+                .build();
+
+        List<HappyModelRequest.History> histories = new ArrayList<>();
+
+        // 转换成格式
+        historyChats.forEach(historyChat -> {
+            if (CHAT_FROM_USER.equals(historyChat.getMessageFrom())) {
+                histories.add(HappyModelRequest.History.builder()
+                        .u(historyChat.getContent())
+                        .build());
+            } else {
+                histories.add(HappyModelRequest.History.builder()
+                        .b(historyChat.getContent())
+                        .build());
+            }
+        });
+        happyModelRequest.setHistory(histories);
+        try {
+            Response response = okHttpUtils.postJson("http://18.219.187.222:5000/chat", ObjectMapperUtils.toJSON(happyModelRequest));
+            String json;
+            if (response != null && response.body() != null) {
+                json = response.body().string();
+                log.info("json {}", json);
+                Map<String, String> jsonMap = ObjectMapperUtils.fromJSON(json, Map.class, String.class, String.class);
+                result.put("response", ObjectMapperUtils.toJSON(jsonMap));
+            }
+        } catch (Exception e) {
+            log.error("requestHappyModel exception", e);
+        }
         return result;
     }
 
