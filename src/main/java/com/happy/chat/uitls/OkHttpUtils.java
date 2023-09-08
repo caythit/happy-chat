@@ -24,8 +24,6 @@ public class OkHttpUtils {
 
 
     public Response postJson(String url, String json) throws Exception {
-        log.info("json={}", json);
-
         RequestBody body = RequestBody.create(MediaType.get("application/json; charset=utf-8"), json);
         Request request = new Request.Builder()
                 .url(url)

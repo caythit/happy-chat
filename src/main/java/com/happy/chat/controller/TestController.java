@@ -227,7 +227,7 @@ public class TestController {
         happyModelRequest.setHistory(histories);
         log.info("request {}", ObjectMapperUtils.toJSON(happyModelRequest));
         try {
-            Response response = okHttpUtils.postJson("http://18.219.187.222:5000/chat", ObjectMapperUtils.toJSON(happyModelRequest));
+            Response response = okHttpUtils.postJson("http://52.14.18.78:5000/chat", ObjectMapperUtils.toJSON(happyModelRequest));
             String json;
             if (response != null && response.body() != null) {
                 json = response.body().string();
