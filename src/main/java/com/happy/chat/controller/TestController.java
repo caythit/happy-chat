@@ -225,12 +225,13 @@ public class TestController {
             }
         });
         happyModelRequest.setHistory(histories);
+        log.info("request {}", ObjectMapperUtils.toJSON(happyModelRequest));
         try {
             Response response = okHttpUtils.postJson("http://18.219.187.222:5000/chat", ObjectMapperUtils.toJSON(happyModelRequest));
             String json;
             if (response != null && response.body() != null) {
                 json = response.body().string();
-                log.info("json {}", json);
+                log.info("response json {}", json);
                 Map<String, String> jsonMap = ObjectMapperUtils.fromJSON(json, Map.class, String.class, String.class);
                 result.put("response", ObjectMapperUtils.toJSON(jsonMap));
             }
