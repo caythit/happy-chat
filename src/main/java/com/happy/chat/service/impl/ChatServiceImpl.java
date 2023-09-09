@@ -463,7 +463,7 @@ public class ChatServiceImpl implements ChatService {
         });
         happyModelRequest.setHistory(histories);
         try {
-            String url = redisUtil.get(happyModelHttpUrl();
+            String url = redisUtil.get(happyModelHttpUrl());
             if (StringUtils.isEmpty(url)) {
                 prometheusUtil.perf(chatPrometheusCounter, "chat_happy_model_url_empty");
                 return null;
