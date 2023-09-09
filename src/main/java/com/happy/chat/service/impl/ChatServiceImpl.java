@@ -8,6 +8,7 @@ import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatWarnWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
 import static com.happy.chat.uitls.CacheKeyProvider.gptApiTokenKey;
+import static com.happy.chat.uitls.CacheKeyProvider.happyModelHttpUrl;
 import static com.happy.chat.uitls.CacheKeyProvider.userChatgptWarnKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userChatgptWarnMaxCountKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userEnterChatgptAdvanceModelThresholdKey;
@@ -63,7 +64,6 @@ public class ChatServiceImpl implements ChatService {
     private final String normalVersionGpt = "normal";
 
     private final String advancedVersionGpt = "advanced";
-    private final String happyModelHttpUrl = "http://18.219.187.222:5000/chat";
 
     @Autowired
     private FlirtopiaChatDao flirtopiaChatDao;
@@ -463,7 +463,12 @@ public class ChatServiceImpl implements ChatService {
         });
         happyModelRequest.setHistory(histories);
         try {
-            Response response = okHttpUtils.postJson(happyModelHttpUrl, ObjectMapperUtils.toJSON(happyModelRequest));
+            String url = redisUtil.get(happyModelHttpUrl();
+            if (StringUtils.isEmpty(url)) {
+                prometheusUtil.perf(chatPrometheusCounter, "chat_happy_model_url_empty");
+                return null;
+            }
+            Response response = okHttpUtils.postJson(url, ObjectMapperUtils.toJSON(happyModelRequest));
             String json;
             if (response != null && response.body() != null) {
                 json = response.body().string();

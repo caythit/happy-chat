@@ -103,4 +103,8 @@ public class CacheKeyProvider {
     public static String robotStripePriceIdKey(String robotId) {
         return PREFIX.concat(String.format("robotStripePriceId:%s", robotId));
     }
+
+    public static String happyModelHttpUrl() {
+        return PREFIX.concat("happyModelHttpUrl");
+    }
 }
