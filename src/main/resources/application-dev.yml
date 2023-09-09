@@ -43,4 +43,4 @@ com:
       from: flirtopiaservice@gmail.com
 stripe:
   apiKey: sk_test_51NPOMIBegHkiPVmEtyhXq3hPFQrXrx9oTVeobQ07bG7PKCloN8uAk4YVq9kPBbb46SgeMocpKSD9TQwuhGcJv1St000ngXvqSb
-  webhookSecret: xxx
+  webhookSecret: whsec_tMGmi5ui6dpSwO6oNaSoqNIUxaMP7xu8
