@@ -33,7 +33,6 @@ import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.PaymentIntent;
 import com.stripe.model.Price;
 import com.stripe.model.StripeObject;
-import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
 
@@ -193,8 +192,8 @@ public class PaymentController {
 
         // todo update payment state，chat go
         if ("payment_intent.succeeded".equals(event.getType())) {
-            Session session = (Session) stripeObject;
-            String sessionId = session.getId();
+            PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
+            String sessionId = paymentIntent.getClientSecret();
             log.info("handle payment_intent.succeeded event {}", sessionId);
 
             boolean ok = paymentService.handleUserPaymentSuccess(sessionId);
