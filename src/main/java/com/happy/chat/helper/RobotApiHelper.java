@@ -4,12 +4,14 @@ import static com.happy.chat.constants.Constant.DATA;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.happy.chat.domain.Robot;
 import com.happy.chat.enums.ErrorEnum;
+import com.happy.chat.service.PaymentService;
 import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.PrometheusUtils;
@@ -28,7 +30,10 @@ public class RobotApiHelper {
     @Autowired
     private RobotService robotService;
 
-    public Map<String, Object> getRobotProfile(String robotId) {
+    @Autowired
+    private PaymentService paymentService;
+
+    public Map<String, Object> getRobotProfile(String userId, String robotId) {
         Robot robot = robotService.getRobotById(robotId);
         if (robot == null) {
             log.error("getRobotProfile failed, robotId={}", robotId);
@@ -37,7 +42,12 @@ public class RobotApiHelper {
         }
         prometheusUtil.perf("robot_get_success");
         Map<String, Object> result = ApiResult.ofSuccess();
-        result.put(DATA, RobotInfoView.convertRobot(robot));
+
+        RobotInfoView robotInfoView = RobotInfoView.convertRobot(robot);
+        if (StringUtils.isNotEmpty(userId)) {
+            robotInfoView.setUserHasSubscribe(paymentService.userHasPayedRobot(userId, robotId));
+        }
+        result.put(DATA, robotInfoView);
         return result;
     }
 }

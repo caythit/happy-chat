@@ -1,8 +1,11 @@
 package com.happy.chat.controller;
 
+import static com.happy.chat.constants.Constant.COOKIE_SESSION_ID;
+
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,7 +26,8 @@ public class RobotController {
      * @return
      */
     @RequestMapping("/profile")
-    public Map<String, Object> profile(@RequestParam("robotId") String robotId) {
-        return robotApiHelper.getRobotProfile(robotId);
+    public Map<String, Object> profile(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
+                                       @RequestParam("robotId") String robotId) {
+        return robotApiHelper.getRobotProfile(userId, robotId);
     }
 }

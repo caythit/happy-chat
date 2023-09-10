@@ -27,6 +27,7 @@ public class RobotInfoView {
     private String work; //职业
     private String aboutMe; //介绍话
     private String interest; //兴趣爱好
+    private boolean userHasSubscribe;
 
     //private String paymentHint; // 支付提示语，首页用到
 

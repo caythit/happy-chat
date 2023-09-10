@@ -32,6 +32,6 @@ public class FeedController {
                                       @RequestParam(value = "ud") String dummyUid,
                                       @RequestParam(value = "size", required = false, defaultValue = "100") int size) {
         log.info("foryou {} {}", dummyUid, userId);
-        return feedApiHelper.foryou(dummyUid, size);
+        return feedApiHelper.foryou(userId, dummyUid, size);
     }
 }
