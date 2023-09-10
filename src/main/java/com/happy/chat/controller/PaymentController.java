@@ -91,7 +91,7 @@ public class PaymentController {
                 return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
             }
             result.put(DATA, PaymentIntentView.builder()
-                    .requestId(paymentIntent.getId())
+                    .requestId(paymentIntent.getClientSecret())
                     .priceId(priceId)
                     .currency(price.getCurrency())
                     .unitAmount(String.valueOf(price.getUnitAmount()))
