@@ -40,7 +40,7 @@ public class PaymentServiceImpl implements PaymentService {
         // 查看 user subscribe 过滤掉是否到期
         List<UserSubscribeInfo> userSubscribeInfos = paymentDao.getUserSubscribeRobotIds(userId);
         return userSubscribeInfos.stream()
-                .filter(info -> info.getExpireMills() <= System.currentTimeMillis())
+                .filter(info -> info.getExpireMills() >= System.currentTimeMillis())
                 .map(UserSubscribeInfo::getRobotId)
                 .collect(Collectors.toList());
 
@@ -52,7 +52,7 @@ public class PaymentServiceImpl implements PaymentService {
         List<UserSubscribeInfo> userSubscribeInfos = paymentDao.getUserSubscribeRobotIds(userId);
         UserSubscribeInfo userSubscribeInfo = userSubscribeInfos.stream()
                 .filter(info -> info.getRobotId().equals(robotId))
-                .filter(info -> info.getExpireMills() <= System.currentTimeMillis())
+                .filter(info -> info.getExpireMills() >= System.currentTimeMillis())
                 .findFirst()
                 .orElse(null);
         return userSubscribeInfo != null;

@@ -69,7 +69,7 @@ public class PaymentDao {
         String sql = "insert into " + USER_SUBSCRIBE_INFO_TABLE
                 + " (user_id, robot_id, expire_mills, create_time, update_time) "
                 + " values (:userId, :robotId, :expireMills, :createTime, :updateTime) "
-                + " on duplicate key update expire_mills = expire_mills+:expireMills, update_time = :updateTime";
+                + " on duplicate key update expire_mills = :expireMills, update_time = :updateTime";
 
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("userId", userId);

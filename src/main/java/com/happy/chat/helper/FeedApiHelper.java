@@ -90,23 +90,4 @@ public class FeedApiHelper {
         }
         return user.getUserPreferInfo().split(":")[0];
     }
-
-    public static void main(String[] args) {
-        String prefer = "1";
-        List<String> robotInfoViewList = new ArrayList<>();
-        List<String> dsd = new ArrayList<>();
-        dsd.add("2");
-        dsd.add("3");
-        dsd.add("1");
-
-        for (String k : dsd) {
-            // 排序，把用户的prefer robot强插到第一位置
-            if (StringUtils.isNotEmpty(prefer) && k.equals(prefer)) {
-                robotInfoViewList.add(0, prefer);
-            }else {
-                robotInfoViewList.add(k);
-            }
-        }
-        System.out.println(robotInfoViewList);
-    }
 }
