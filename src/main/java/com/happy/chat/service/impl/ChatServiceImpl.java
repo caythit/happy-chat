@@ -494,7 +494,7 @@ public class ChatServiceImpl implements ChatService {
      */
     private String requestChatgpt(String robotId, String version, String currentUserInput, List<FlirtopiaChat> historyChats) {
         // 从缓存里取出robot对应的prompt，分成热情版/普通版。即role=system
-        String fileName = String.format("%s_%s.prompt", robotId, version);
+        String fileName = String.format("prompt/%s_%s.prompt", robotId, version);
         String prompt = FileUtils.getFileContent(fileName);
         if (StringUtils.isEmpty(prompt)) {
             log.error("robot {} has no prompt {} ", robotId, version);

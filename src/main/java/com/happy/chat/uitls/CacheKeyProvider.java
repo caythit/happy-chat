@@ -96,6 +96,7 @@ public class CacheKeyProvider {
         return PREFIX.concat(String.format("userChatgptWarn:%s:%s", userId, robotId));
     }
 
+    @Deprecated
     public static String robotGptPromptKey(String robotId, String version) {
         return PREFIX.concat(String.format("robotGptPrompt:%s:%s", robotId, version));
     }
@@ -106,5 +107,11 @@ public class CacheKeyProvider {
 
     public static String happyModelHttpUrl() {
         return PREFIX.concat("happyModelHttpUrl");
+    }
+
+    public static void main(String[] args) {
+        String fileName = String.format("prompt/%s_%s.prompt", "rb_test11", "normal");
+        String prompt = FileUtils.getFileContent(fileName);
+        System.out.println(prompt);
     }
 }

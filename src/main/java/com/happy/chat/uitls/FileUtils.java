@@ -22,7 +22,7 @@ public class FileUtils {
                 sb.append(str).append("\n");
             }
         } catch (IOException e) {
-            log.error("getFileContent exception");
+            log.error("getFileContent exception", e);
         }
         return sb.toString();
     }
