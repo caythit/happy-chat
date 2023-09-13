@@ -189,6 +189,13 @@ public class TestController {
         return result;
     }
 
+    @RequestMapping("/userHasPayedRobot")
+    public Map<String, Object> userHasPayedRobot(@RequestParam("userId") String userId,
+                                                 @RequestParam("robotId") String robotId) {
+        Map<String, Object> result = ApiResult.ofSuccess();
+        result.put("result", paymentService.userHasPayedRobot(userId, robotId));
+        return result;
+    }
 
     @RequestMapping("/requestHappyModel")
     public Map<String, Object> requestHappyModel(@RequestParam("userId") String userId,
