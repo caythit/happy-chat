@@ -504,7 +504,7 @@ public class ChatServiceImpl implements ChatService {
 
         List<String> apiKeys = redisUtil.range(gptApiTokenKey(), 0, -1);
         if (CollectionUtils.isEmpty(apiKeys)) {
-            log.error("chat gpt apikey empty");
+            log.error("chat gpt apikey empty {}", robotId);
             prometheusUtil.perf(chatPrometheusCounter, "get_gpt_api_key_failed");
             return null;
         }
