@@ -1,5 +1,16 @@
 # 开启优雅停止 Web 容器，默认为 IMMEDIATE：立即停止
 server:
+  tomcat:
+    accept-count: 100
+    threads:
+      # 1核2g内存为200,4核8g内存为800
+      max: 800
+      # 最小空闲线程数量，保证线程池中一直有最少100个线程，防止流量激增
+      min-spare: 100
+    # 连接超时时间
+    connection-timeout: 10000
+    # 最大连接数，可以适应 APR 模式
+    max-connections: 8192
   shutdown: graceful
   max-http-header-size: 20000
 
