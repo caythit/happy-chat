@@ -34,8 +34,10 @@ import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.CommonUtils;
 import com.happy.chat.uitls.ObjectMapperUtils;
 import com.happy.chat.uitls.PrometheusUtils;
+import com.happy.chat.view.ChatHistoryView;
 import com.happy.chat.view.FlirtopiaChatView;
 import com.happy.chat.view.IceBreakWordView;
+import com.happy.chat.view.RobotInfoView;
 import com.happy.chat.view.UserChatListView;
 
 import lombok.extern.slf4j.Slf4j;
@@ -131,15 +133,13 @@ public class ChatApiHelper {
 
     }
 
-    public Map<String, Object> getUserRobotHistoryChats(String userId, String robotId) {
+    public ChatHistoryView getUserRobotHistoryChats(String userId, String robotId) {
+        ChatHistoryView chatHistoryView = new ChatHistoryView();
+        chatHistoryView.setRobotInfoView(RobotInfoView.convertRobot(robotService.getRobotById(robotId)));
+
         List<FlirtopiaChat> flirtopiaChats = chatService.getUserRobotHistoryChats(userId, robotId);
-        if (CollectionUtils.isEmpty(flirtopiaChats)) {
-            log.warn("getUserRobotHistoryChats empty {} {} ", userId, robotId);
-            return ApiResult.ofSuccess();
-        }
-        Map<String, Object> result = ApiResult.ofSuccess();
-        result.put(DATA, flirtopiaChats.stream().map(FlirtopiaChatView::convertChat).collect(Collectors.toList()));
-        return result;
+        chatHistoryView.setFlirtopiaChatViewList(flirtopiaChats.stream().map(FlirtopiaChatView::convertChat).collect(Collectors.toList()));
+        return chatHistoryView;
     }
 
     /**

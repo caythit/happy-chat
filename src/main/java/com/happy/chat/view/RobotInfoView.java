@@ -32,6 +32,9 @@ public class RobotInfoView {
     //private String paymentHint; // 支付提示语，首页用到
 
     public static RobotInfoView convertRobot(Robot robot) {
+        if (robot == null) {
+            return null;
+        }
         RobotInfoView robotInfoView = new RobotInfoView();
         robotInfoView.setRobotId(robot.getRobotId());
         robotInfoView.setName(robot.getName());

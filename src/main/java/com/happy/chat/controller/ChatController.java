@@ -1,6 +1,7 @@
 package com.happy.chat.controller;
 
 import static com.happy.chat.constants.Constant.COOKIE_SESSION_ID;
+import static com.happy.chat.constants.Constant.DATA;
 
 import java.util.Map;
 
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.happy.chat.helper.ChatApiHelper;
+import com.happy.chat.uitls.ApiResult;
+import com.happy.chat.view.ChatHistoryView;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,6 +54,9 @@ public class ChatController {
                                            @RequestParam(value = "ud", required = false) String dummyUid,
                                            @RequestParam("robotId") String robotId) {
         // todo 改成cookie userId
-        return chatApiHelper.getUserRobotHistoryChats(dummyUid, robotId);
+        ChatHistoryView chatHistoryView = chatApiHelper.getUserRobotHistoryChats(dummyUid, robotId);
+        Map<String, Object> result = ApiResult.ofSuccess();
+        result.put(DATA, chatHistoryView);
+        return result;
     }
 }
