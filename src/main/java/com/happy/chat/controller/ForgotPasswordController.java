@@ -34,7 +34,7 @@ public class ForgotPasswordController {
     @RequestMapping("/sendEmailCode")
     public Map<String, Object> send(@RequestParam("email") String email) {
         // 验证邮箱 todo 确认subject和text
-        ErrorEnum errorEnum = emailHelper.sendCode(email, "Please check your email captcha(forgot password)",
+        ErrorEnum errorEnum = emailHelper.sendCode(email, "Verify your email address",
                 true, "forgot password");
         if (errorEnum == ErrorEnum.SUCCESS) {
             return ApiResult.ofSuccess();
