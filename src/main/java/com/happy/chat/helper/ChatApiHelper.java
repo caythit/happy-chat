@@ -6,6 +6,7 @@ import static com.happy.chat.constants.Constant.DATA;
 import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_PAY_TIPS;
 import static com.happy.chat.constants.Constant.EXTRA_INFO_MESSAGE_SYSTEM_TIPS;
 import static com.happy.chat.constants.Constant.MESSAGE_ID_PREFIX;
+import static com.happy.chat.uitls.CacheKeyProvider.chatFinishPayTipsKey;
 import static java.util.stream.Collectors.groupingBy;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -34,6 +36,7 @@ import com.happy.chat.uitls.ApiResult;
 import com.happy.chat.uitls.CommonUtils;
 import com.happy.chat.uitls.ObjectMapperUtils;
 import com.happy.chat.uitls.PrometheusUtils;
+import com.happy.chat.uitls.RedisUtil;
 import com.happy.chat.view.ChatHistoryView;
 import com.happy.chat.view.FlirtopiaChatView;
 import com.happy.chat.view.IceBreakWordView;
@@ -46,6 +49,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class ChatApiHelper {
+    private final String defaultAlreadyPayTips = "I will only serve you at all time.\n";
+
     @Autowired
     private PrometheusUtils prometheusUtil;
 
@@ -57,6 +62,9 @@ public class ChatApiHelper {
 
     @Autowired
     private PaymentService paymentService;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     public Map<String, Object> getIceBreakWords(String robotId) {
         Map<String, Object> result = ApiResult.ofSuccess();
@@ -137,9 +145,29 @@ public class ChatApiHelper {
         ChatHistoryView chatHistoryView = new ChatHistoryView();
         chatHistoryView.setRobotInfoView(RobotInfoView.convertRobot(robotService.getRobotById(robotId)));
 
+        boolean hasPaid = paymentService.userHasPayedRobot(userId, robotId);
         List<FlirtopiaChat> flirtopiaChats = chatService.getUserRobotHistoryChats(userId, robotId);
-        chatHistoryView.setFlirtopiaChatViewList(flirtopiaChats.stream().map(FlirtopiaChatView::convertChat).collect(Collectors.toList()));
+        chatHistoryView.setFlirtopiaChatViewList(flirtopiaChats.stream().map(x -> {
+            // 付费后要变更成付费的文案
+            FlirtopiaChatView flirtopiaChatView = FlirtopiaChatView.convertChat(x);
+            if (hasPaid) {
+                flirtopiaChatView.setPayTips(getAlreadyPayTips());
+            }
+            return flirtopiaChatView;
+        }).collect(Collectors.toList()));
         return chatHistoryView;
+    }
+
+    // 已付费提示
+    private String getAlreadyPayTips() {
+        List<String> results = redisUtil.range(chatFinishPayTipsKey(), 0, -1);
+        if (CollectionUtils.isEmpty(results)) {
+            log.error("robot already pay tips empty");
+            prometheusUtil.perf("get_robot_already_pay_tips_empty");
+            return defaultAlreadyPayTips;
+        }
+        return results.get(RandomUtils.nextInt(0, results.size()));
+
     }
 
     /**
@@ -189,7 +217,6 @@ public class ChatApiHelper {
         robotRespMessage.setCreateTime(System.currentTimeMillis());
         robotRespMessage.setUpdateTime(System.currentTimeMillis());
         if (StringUtils.isNotEmpty(chatResponse.getPayTips())) {
-            // 付费后要变更成付费的文案
             robotRespMessage.setExtraInfo(
                     ObjectMapperUtils.toJSON(ImmutableMap.of(EXTRA_INFO_MESSAGE_PAY_TIPS, chatResponse.getPayTips())));
         }

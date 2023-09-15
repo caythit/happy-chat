@@ -1,7 +1,6 @@
 package com.happy.chat.service.impl;
 
 import static com.happy.chat.constants.Constant.CHAT_FROM_USER;
-import static com.happy.chat.uitls.CacheKeyProvider.chatFinishPayTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSystemTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayTipsKey;
@@ -57,7 +56,6 @@ public class ChatServiceImpl implements ChatService {
     private final String defaultEnterAdvanceModelHistoryChatSize = "10";
 
     private final String defaultToPayTips = "Don’t be shy to undress me, only $9.9";
-    private final String defaultAlreadyPayTips = "I will only serve you at all time.\n";
     private final String defaultSystemTips = "Don't scare a girl. Do it gently and softly.";
     private final String defaultUserChatWarnMaxCount = "3";
 
@@ -147,7 +145,7 @@ public class ChatServiceImpl implements ChatService {
         // 敏感词 直接返回
         if (hasSensitiveWord) {
             log.warn("user request content contains sensitive {} {} {}", userId, robotId, content);
-            prometheusUtil.perf(chatPrometheusCounter, "chat_user_request_content_contains_sensitive");
+            prometheusUtil.perf("chat_user_request_content_contains_sensitive");
             return getRobotDefaultResp();
         }
 
@@ -206,7 +204,6 @@ public class ChatServiceImpl implements ChatService {
         // 来自快乐模型的回复 要更新下时间
         if (!chatResponse.isUseDefault()) {
             updateHappyModelLatestTime(userId, robotId);
-            // todo 同时返回付费提示 客户端高斯模糊
             chatResponse.setPayTips(getUnPayTips());
         }
         return chatResponse;
@@ -301,18 +298,15 @@ public class ChatServiceImpl implements ChatService {
                                                  List<FlirtopiaChat> userHistoryMessages) {
         // 快乐模型是否退场机制
         boolean timeForExit = checkTimeForExitHappyModel(userId, robotId);
-        String aiRespContent;
-        boolean fromHappyModel = false;
-        if (timeForExit) {
-            aiRespContent = requestChatgpt(robotId, advancedVersionGpt, userReqContent, userHistoryMessages);
-        } else {
-            aiRespContent = requestHappyModel(robotId, userReqContent, userHistoryMessages);
-            fromHappyModel = true;
+        if (timeForExit) { //退场，回退到请求热情版
+            String responseContent = requestChatgpt(robotId, advancedVersionGpt, userReqContent, userHistoryMessages);
+            return buildChatResponse(userId, robotId, responseContent);
         }
-
-        ChatResponse chatResponse = buildChatResponse(userId, robotId, aiRespContent);
+        // 未退场
+        String responseContent = requestHappyModel(robotId, userReqContent, userHistoryMessages);
+        ChatResponse chatResponse = buildChatResponse(userId, robotId, responseContent);
         // 来自快乐模型的回复 要更新下时间
-        if (!chatResponse.isUseDefault() && fromHappyModel) {
+        if (!chatResponse.isUseDefault()) {
             updateHappyModelLatestTime(userId, robotId);
         }
         return chatResponse;
@@ -322,13 +316,13 @@ public class ChatServiceImpl implements ChatService {
         // 为空
         if (StringUtils.isEmpty(content)) {
             log.error("buildChatResponse empty {} {} {}", userId, robotId, content);
-            prometheusUtil.perf(chatPrometheusCounter, "chat_ai_resp_empty");
+            prometheusUtil.perf("chat_ai_resp_empty");
             return getRobotDefaultResp();
         }
         // 敏感词
         if (hasSensitiveWord(content)) {
             log.error("buildChatResponse hasSensitiveWord {} {} {}", userId, robotId, content);
-            prometheusUtil.perf(chatPrometheusCounter, "chat_ai_resp_contains_sensitive");
+            prometheusUtil.perf("chat_ai_resp_contains_sensitive");
             return getRobotDefaultResp();
         }
 
@@ -342,7 +336,7 @@ public class ChatServiceImpl implements ChatService {
         List<String> defaultResps = redisUtil.range(defaultRobotRespChatKey(), 0, -1);
         if (CollectionUtils.isEmpty(defaultResps)) {
             log.error("robot default resp empty");
-            prometheusUtil.perf(chatPrometheusCounter, "get_robot_default_resp_empty");
+            prometheusUtil.perf("get_robot_default_resp_empty");
             // todo 默认的
             return ChatResponse.builder()
                     .content("I have no idea about it")
@@ -360,22 +354,10 @@ public class ChatServiceImpl implements ChatService {
         List<String> results = redisUtil.range(chatUnPayTipsKey(), 0, -1);
         if (CollectionUtils.isEmpty(results)) {
             log.error("robot unpay tips empty");
-            prometheusUtil.perf(chatPrometheusCounter, "get_robot_unpay_tips_empty");
+            prometheusUtil.perf("get_robot_unpay_tips_empty");
             return defaultToPayTips;
         }
         return results.get(RandomUtils.nextInt(0, results.size()));
-    }
-
-    // 已付费提示
-    private String getAlreadyPayTips() {
-        List<String> results = redisUtil.range(chatFinishPayTipsKey(), 0, -1);
-        if (CollectionUtils.isEmpty(results)) {
-            log.error("robot already pay tips empty");
-            prometheusUtil.perf(chatPrometheusCounter, "get_robot_already_pay_tips_empty");
-            return defaultAlreadyPayTips;
-        }
-        return results.get(RandomUtils.nextInt(0, results.size()));
-
     }
 
     /**
@@ -396,7 +378,7 @@ public class ChatServiceImpl implements ChatService {
         }
         List<String> warnList = redisUtil.range(chatWarnWordKey(), 0, -1);
         if (CollectionUtils.isEmpty(warnList)) {
-            prometheusUtil.perf(chatPrometheusCounter, "get_chat_warn_keyword_empty");
+            prometheusUtil.perf("get_chat_warn_keyword_empty");
             return false;
         }
         return warnList.stream()
@@ -466,7 +448,7 @@ public class ChatServiceImpl implements ChatService {
         try {
             String url = redisUtil.get(happyModelHttpUrl());
             if (StringUtils.isEmpty(url)) {
-                prometheusUtil.perf(chatPrometheusCounter, "chat_happy_model_url_empty");
+                prometheusUtil.perf("chat_happy_model_url_empty");
                 return null;
             }
             Response response = okHttpUtils.postJson(url, ObjectMapperUtils.toJSON(happyModelRequest));
@@ -479,7 +461,7 @@ public class ChatServiceImpl implements ChatService {
             }
         } catch (Exception e) {
             log.error("requestHappyModel exception", e);
-            prometheusUtil.perf(chatPrometheusCounter, "chat_happy_model_return_empty_" + robotId);
+            prometheusUtil.perf("chat_happy_model_return_empty_" + robotId);
         }
         return null;
     }
@@ -499,14 +481,14 @@ public class ChatServiceImpl implements ChatService {
         String prompt = FileUtils.getFileContent(fileName);
         if (StringUtils.isEmpty(prompt)) {
             log.error("robot {} has no prompt {} ", robotId, version);
-            prometheusUtil.perf(chatPrometheusCounter, "get_robot_prompt_empty_" + robotId);
+            prometheusUtil.perf("get_robot_prompt_empty_" + robotId);
             return null;
         }
 
         List<String> apiKeys = redisUtil.range(gptApiTokenKey(), 0, -1);
         if (CollectionUtils.isEmpty(apiKeys)) {
             log.error("chat gpt apikey empty {}", robotId);
-            prometheusUtil.perf(chatPrometheusCounter, "get_gpt_api_key_failed");
+            prometheusUtil.perf("get_gpt_api_key_failed");
             return null;
         }
 
@@ -527,7 +509,7 @@ public class ChatServiceImpl implements ChatService {
 
         ChatMessage response = openAIService.requestChatCompletion(apiKeys, messages);
         if (response == null) {
-            prometheusUtil.perf(chatPrometheusCounter, "chat_open_ai_return_empty_" + robotId);
+            prometheusUtil.perf("chat_open_ai_return_empty_" + robotId);
             return null;
         }
         return response.getContent();
@@ -539,7 +521,7 @@ public class ChatServiceImpl implements ChatService {
         }
         List<String> sensitiveWords = redisUtil.range(chatSensitiveWordKey(), 0, -1);
         if (CollectionUtils.isEmpty(sensitiveWords)) {
-            prometheusUtil.perf(chatPrometheusCounter, "get_chat_sensitive_keyword_empty");
+            prometheusUtil.perf("get_chat_sensitive_keyword_empty");
             return false;
         }
         return sensitiveWords.stream()
