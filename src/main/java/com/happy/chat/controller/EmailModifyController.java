@@ -55,7 +55,7 @@ public class EmailModifyController {
     @RequestMapping("/sendEmailCode")
     public Map<String, Object> send(@RequestParam("email") String email) {
         // 验证邮箱 todo 确认subject和text
-        ErrorEnum errorEnum = emailHelper.sendCode(email, "", "", false, "modifyEmail");
+        ErrorEnum errorEnum = emailHelper.sendCode(email, "Please check your email captcha(bind email)",  false, "bind email");
         if (errorEnum == ErrorEnum.SUCCESS) {
             return ApiResult.ofSuccess();
         }

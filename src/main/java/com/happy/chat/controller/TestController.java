@@ -7,7 +7,6 @@ import static com.happy.chat.uitls.CacheKeyProvider.chatSystemTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatWarnWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
-import static com.happy.chat.uitls.CacheKeyProvider.robotGptPromptKey;
 import static com.happy.chat.uitls.CacheKeyProvider.startupConfigKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userChatgptWarnMaxCountKey;
 import static com.happy.chat.uitls.CacheKeyProvider.userEnterChatgptAdvanceModelThresholdKey;
@@ -81,7 +80,6 @@ public class TestController {
         prometheusUtil.perf("chatApi_recall");
 
         result.put("data", String.format("hello, %s", userName));
-        result.put("prompt", redisUtil.get(robotGptPromptKey("rb_XXXX5", "advanced")));
 
         log.info("test log...");
         log.warn("test log...");
@@ -98,7 +96,7 @@ public class TestController {
         redisUtil.rightPushAll(chatSensitiveWordKey(), "are LLM", "are robot", "are chat gpt");
         result.put(chatSensitiveWordKey(), redisUtil.range(chatSensitiveWordKey(), 0, -1));
 
-        // 敏感词
+        // 警报
         redisUtil.delete(chatWarnWordKey());
         redisUtil.rightPushAll(chatWarnWordKey(), "are LLM", "are robot", "are chat gpt");
         result.put(chatWarnWordKey(), redisUtil.range(chatWarnWordKey(), 0, -1));
@@ -141,9 +139,8 @@ public class TestController {
         result.put(userChatgptWarnMaxCountKey(), redisUtil.get(userChatgptWarnMaxCountKey()));
 
         StartupConfigModel startupConfig = new StartupConfigModel();
-        startupConfig.setLogoUrl("https://www.freepnglogos.com/uploads/spotify-logo-png/spotify-icon-marilyn-scott-0.png");
         startupConfig.setAgeOptions(ImmutableList.of("18-25", "25-35", "35+"));
-        startupConfig.setIntroduceText("Hello!\n who would you like\n to chat with?");
+        startupConfig.setIntroduceText("Who would you like to chat with?");
         startupConfig.setWelcomeText("How are you \ntoday?");
         startupConfig.setPymlRobotIds(ImmutableSet.<String>builder()
                 .add("rb_test8")
@@ -158,7 +155,6 @@ public class TestController {
         StartupConfigModel model = ObjectMapperUtils.fromJSON(redisUtil.get(startupConfigKey()), StartupConfigModel.class);
         if (model != null) {
             StartupConfigView startupConfigView = new StartupConfigView();
-            startupConfigView.setLogoUrl(model.getLogoUrl());
             startupConfigView.setAgeOptions(model.getAgeOptions());
             startupConfigView.setIntroduceText(model.getIntroduceText());
             startupConfigView.setWelcomeText(model.getWelcomeText());
@@ -173,9 +169,8 @@ public class TestController {
     }
 
     @RequestMapping("/sendMail")
-    public Map<String, Object> sendMail(@RequestParam("to") String to, @RequestParam("subject") String subject,
-                                        @RequestParam("text") String text) {
-        ErrorEnum errorEnum = emailHelper.sendCode(to, subject, text, false, "test");
+    public Map<String, Object> sendMail(@RequestParam("to") String to, @RequestParam("subject") String subject) {
+        ErrorEnum errorEnum = emailHelper.sendCode(to, subject, false, "test");
         if (errorEnum == ErrorEnum.SUCCESS) {
             return ApiResult.ofSuccess();
         }

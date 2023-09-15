@@ -51,7 +51,7 @@ public class EmailHelper {
     @Autowired
     private RedisUtil redisUtil;
 
-    public ErrorEnum sendCode(String email, String subject, String text, boolean checkEmailBind, String purpose) {
+    public ErrorEnum sendCode(String email, String subject, boolean checkEmailBind, String purpose) {
         String extra1 = String.format("%s_%s", email, purpose);
 
         // check email 格式
@@ -77,7 +77,7 @@ public class EmailHelper {
             String code = String.valueOf(randomMailCode());
 
             String template = FileUtils.getFileContent("mail.html");
-            String content = String.format(template, purpose, code);
+            String content = String.format(template, code);
             // 5分钟有效
             redisUtil.set(CacheKeyProvider.mailCodeKey(email), code, 5, TimeUnit.MINUTES);
             sendByTSL(mailUser, mailAppPwd, mailFrom, email, subject, content);

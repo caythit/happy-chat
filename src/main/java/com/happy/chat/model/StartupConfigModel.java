@@ -7,7 +7,6 @@ import lombok.Data;
 
 @Data
 public class StartupConfigModel {
-    private String logoUrl;
     private String introduceText; // Hello, who would you like to chat with?
     private Set<String> pymlRobotIds;
     private List<String> ageOptions; // 年纪的偏好

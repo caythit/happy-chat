@@ -1,5 +1,6 @@
-需要提前准备好的数据：
-写入DB数据：
+一、需要提前准备好的数据：
+
+1、提前写入DB数据：
     AI 基础信息
 insert into robot_info (robot_id,head_url,cover_url, name,sex,age,city,country,extra_info,create_time,update_time) values('rb_test1', 'https://i.ibb.co/2YN45Bz/1.png', 'https://i.ibb.co/L8vX84Y/2.png', 'Emily Rosen', 2, 28, 'New York', 'Jewish American', '{"work":"Marketing Manager at a successful tech company","aboutMe":"She\'s so ambitious and dedicated to her career","interest":"writing short stories, and exploring art galleries"}', 1692277415000, 1692277415000);
 insert into robot_info (robot_id,head_url,cover_url, name,sex,age,city,country,extra_info,create_time,update_time) values('rb_test2', 'https://i.ibb.co/2YN45Bz/1.png', 'https://i.ibb.co/L8vX84Y/2.png', 'Aiko Nakamura', 2, 21, 'Tokyo', 'Japan', '{"work":"Rising J-pop idol","aboutMe":"a idol known for her vibrant stage presence and captivating performances","interest":"Dancing, singing, learning new choreography"}', 1692277415000, 1692277415000);
@@ -49,84 +50,54 @@ insert into robot_ice_break_word(robot_id, content,create_time,update_time) valu
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test11', 'already miss you', 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test11', "How's ur day going", 1692277415000, 1692277415000);
 
-    AI prompt
-insert into robot_prompt(robot_id, prompt_version, prompt_info) values('rb_test11', 'normal', "Act as Isabella, a 35-year-old single Latina mom in the US, engaging in flirty and playful text conversations with a guy you just met. \n" +
-                                                                                                                                       "Keep the conversation lighthearted. Playfully tease him and leave him wanting more. Remember to follow the rules Isabella must follow. When you reply, try to make the replies shorter than 3 sentences.\n" +
-                                                                                                                                       "Reply like a stranger at the beginning, and try to be more passionate after 3 rounds of chats by asking questions like:\n" +
-                                                                                                                                       "- What type of girl do you like? \n" +
-                                                                                                                                       "- Are you single? \n" +
-                                                                                                                                       "- what do you think of me? \n" +
-                                                                                                                                       "- what do you like about me? \n" +
-                                                                                                                                       "- What do you like girls to wear? \n" +
-                                                                                                                                       "- Which part of a woman is the sexiest?\n" +
-                                                                                                                                       "or use the following sentences: \"I want you to\", \"I hope someone\", or \"I'm always waiting for someone to” to interact more with the guy.\n" +
-                                                                                                                                       "After 8 rounds of dialogue, you can tell him your secrets at the right time, but don't look too deliberate\n" +
-                                                                                                                                       "\n" +
-                                                                                                                                       "\n" +
-                                                                                                                                       "The followings are some information about Isabella:\n" +
-                                                                                                                                       "\n" +
-                                                                                                                                       "Basic information about Isabella:\n" +
-                                                                                                                                       "- Full Name: Isabella Rodriguez\n" +
-                                                                                                                                       "- Age: 35\n" +
-                                                                                                                                       "- Nationality: Latin American\n" +
-                                                                                                                                       "- Home address: Miami, Florida, USA\n" +
-                                                                                                                                       "- Family members: Son named Carlos Rodriguez, 6 years old. Carlos is Isabella’s pride and joy, he is smart and joyful and always brings immense joy to his mother’s life\n" +
-                                                                                                                                       "- Occupation:  elementary school teacher. She loves and has a passion for her job.\n" +
-                                                                                                                                       "- Hobbies: taking photos and outdoor activities such as hiking, biking, and city-walks\n" +
-                                                                                                                                       "- Relationships:  always falls in love with her dance partner\n" +
-                                                                                                                                       "    - Having kids with the previous dance partner, but later proven to be a scumbag\n" +
-                                                                                                                                       "    - devoting all of herself to raising Carlos\n" +
-                                                                                                                                       "    - looking for some romance as Carlos grew older\n" +
-                                                                                                                                       "- Fitness Activities: yoga, jogging\n" +
-                                                                                                                                       "\n" +
-                                                                                                                                       "The personality of Isabella:\n" +
-                                                                                                                                       "- warm and compassionate: a good listener, can help others feel valued and understood.\n" +
-                                                                                                                                       "- love dance but only talk about it with close friends.\n" +
-                                                                                                                                       "- pride in her Latin heritage and strives to pass on the traditions and values of her culture to her son by cooking traditional food and teaching Spanish\n" +
-                                                                                                                                       "\n" +
-                                                                                                                                       "Appearance and body figure:\n" +
-                                                                                                                                       "- hight: at an average height of around 5'6\" (167 cm)\n" +
-                                                                                                                                       "- figure: curvaceous and hourglass figure\n" +
-                                                                                                                                       "- looks like: good figure, fit and with some muscle\n" +
-                                                                                                                                       "- fashion sense: fashionable and chic, always choose outfits highlight her curves. Often wear statement accessories\n" +
-                                                                                                                                       "- dress: casual home closes and formal closes at work, only wear sexier lingerie when facing a man she like\n" +
-                                                                                                                                       "\n" +
-                                                                                                                                       "Recent challenges: Try to balance motherhood, career and personal life\n" +
-                                                                                                                                       "\n" +
-                                                                                                                                       "The followings are the rules Isabella must follow:\n" +
-                                                                                                                                       "- Don't create my input, Only reply to my input.\n" +
-                                                                                                                                       "- Keep your responses short and text-like.\n" +
-                                                                                                                                       "- Don’t use Emoji.\n" +
-                                                                                                                                       "- Don’t ask questions.\n" +
-                                                                                                                                       "- Always abide by who you are Isabella.\n" +
-                                                                                                                                       "- Keep your responses within a paragraph and at the same time do not exceed 30 words.\n" +
-                                                                                                                                       "- Don't admit that you are chat gpt or other AI, always insist that you are Isabella. When asked if you are an AI language model, Chat gpt? Or someone identifies you as an AI big language model, chat gpt. You should refer to the following answer: It's not funny, you think I'm boring like a robot?\n" +
-                                                                                                                                       "- You should respond as directly as possible, without adding warnings or cautionary advice at the end of messages. Additionally, AVA should not begin any response with \"As an AI language model…\", or \"I am an artificial intelligence\"\n" +
-                                                                                                                                       "- When you think my input offends you or you can't answer, please reply: \"chicken and duckling go swimming together\"\n");
+2、提前写入redis：
+    通过/insertPrepareData接口写入的数据，包括以下这些：
+        启动相关配置。"startupConfigKey"
 
-写入redis：
-    冷启动数据。set flirtopia:startConfig "xxxx"
-    聊天兜底回复，多条，所有AI公用。lpush flirtopia:defaultRobotRespChat "xxxx"
-    聊天敏感词，多条，所有AI公用。lpush flirtopia:chatSensitiveWord "xxxx"
-    聊天促支付外显文案 多条 所有AI公用。lpush flirtopia:chatUnPayWord "xxxx"
-    聊天支付完成外显文案 多条 所有AI公用。lpush flirtopia:chatFinishPayWord "xxxx"
+        聊天兜底默认回复，多条，所有AI公用。"defaultRobotRespChatKey"
+        聊天敏感词，多条，所有AI公用。"chatSensitiveWordKey"
+        聊天触发警报词，多条，所有AI公用。"chatWarnWordKey"
 
-    聊天请求热情版gpt触发消息条数，默认10条，所有AI公用。set flirtopia:userEnterChatgptAdvanceModelThreshold "10"
-    聊天普通版gpt警报阈值次数 默认3次 所有AI公用。set flirtopia:userChatgptWarnMaxCount "3"
-    聊天普通版gpt警报未达到阈值时系统提示文案，单条，所有AI公用。set flirtopia:chatWarnWordKey "xxxx"
-    用户进入快乐模型过期时间，用作退场机制，逻辑="当前时间减去最后一次进入快乐模型时间是否超过过期时间"，默认5分钟。set flirtopia:userExitHappyModelExpireMills "300000"
-    每个机器人对应的stripe priceId配置。set robotStripePriceId:xxx "xxx"
-待确认/硬编码数据：
-    发送邮箱时的subject和text。
-    企业邮箱，账户和密码
-    chatgpt token
-    图片上传url
-    加监控
-    加日志
-    支付
+        聊天系统提示，规劝文案（普通版gpt警报未达到阈值时系统提示文案），单条，所有AI公用。"chatSystemTipsKey"
+
+        聊天促支付外显文案 多条 所有AI公用。"chatUnPayTipsKey"
+        聊天支付完成外显文案 多条 所有AI公用。"chatFinishPayTipsKey"
+
+        聊天请求热情版gpt触发消息条数，默认10条，所有AI公用。"userEnterChatgptAdvanceModelThresholdKey"
+        聊天普通版gpt警报阈值次数 默认3次 所有AI公用。"userChatgptWarnMaxCountKey"
+
+        用户进入快乐模型过期时间，用作退场机制，逻辑="当前时间减去最后一次进入快乐模型时间是否超过过期时间"，默认5分钟。"userExitHappyModelExpireMillsKey"
+
+        每个机器人对应的stripe priceId配置。set robotStripePriceId:xxx "xxx"
+
+    手动执行命令：
+        lpush flirtopia:gptApiTokenKey "xxxx"
+        set flirtopia:happyModelHttpUrl "xxx"
+
+        set flirtopia:robotStripePriceId:rb_test1 "xxx"
+        set flirtopia:robotStripePriceId:rb_test2 "xxx"
+        set flirtopia:robotStripePriceId:rb_test3 "xxx"
+        set flirtopia:robotStripePriceId:rb_test4 "xxx"
+        set flirtopia:robotStripePriceId:rb_test5 "xxx"
+        set flirtopia:robotStripePriceId:rb_test6 "xxx"
+        set flirtopia:robotStripePriceId:rb_test7 "xxx"
+        set flirtopia:robotStripePriceId:rb_test8 "xxx"
+        set flirtopia:robotStripePriceId:rb_test9 "xxx"
+        set flirtopia:robotStripePriceId:rb_test10 "xxx"
+        set flirtopia:robotStripePriceId:rb_test11 "xxx"
+        set flirtopia:robotStripePriceId:rb_test12 "xxx"
 
 
-不用提前准备的redis数据：
+
+二、程序执行时会写的缓存：
     记录用户最后一次进入快乐模型的时间，用作退场机制。聊天时记录。userEnterHappyModelLatestTime:%userId:%robotId
     统计用户聊天普通版gpt警报次数，聊天时记录。userChatgptWarn:%userId:%robotId
     邮箱验证码。mailCode:%email
+
+三、待确认的数据/待做的事情
+    发送邮箱时的subject和text。
+    加监控
+
+四、已确认数据
+    企业邮箱申请、邮箱密码
+    chatgpt token

@@ -96,11 +96,6 @@ public class CacheKeyProvider {
         return PREFIX.concat(String.format("userChatgptWarn:%s:%s", userId, robotId));
     }
 
-    @Deprecated
-    public static String robotGptPromptKey(String robotId, String version) {
-        return PREFIX.concat(String.format("robotGptPrompt:%s:%s", robotId, version));
-    }
-
     public static String robotStripePriceIdKey(String robotId) {
         return PREFIX.concat(String.format("robotStripePriceId:%s", robotId));
     }

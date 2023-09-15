@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.happy.chat.domain.Robot;
 import com.happy.chat.enums.ErrorEnum;
 import com.happy.chat.model.StartupConfigModel;
@@ -54,18 +55,16 @@ public class StartupApiHelper {
         if (model == null) {
             log.error("getConfig failed, use mock view");
             prometheusUtil.perf("mock_config");
-            startupConfigView = mockView();
-        } else {
-            prometheusUtil.perf("read_config");
-            startupConfigView.setLogoUrl(model.getLogoUrl());
-            startupConfigView.setAgeOptions(model.getAgeOptions());
-            startupConfigView.setIntroduceText(model.getIntroduceText());
-            startupConfigView.setWelcomeText(model.getWelcomeText());
-            Map<String, Robot> robotMap = robotService.batchGetRobotById(model.getPymlRobotIds());
-            startupConfigView.setPymlRobots(robotMap.values().stream()
-                    .map(r -> new RobotStartupView(r.getRobotId(), r.getHeadUrl(), r.getName()))
-                    .collect(Collectors.toList()));
+            model = mockModel();
         }
+        startupConfigView.setAgeOptions(model.getAgeOptions());
+        startupConfigView.setIntroduceText(model.getIntroduceText());
+        startupConfigView.setWelcomeText(model.getWelcomeText());
+        Map<String, Robot> robotMap = robotService.batchGetRobotById(model.getPymlRobotIds());
+        startupConfigView.setPymlRobots(robotMap.values().stream()
+                .map(r -> new RobotStartupView(r.getRobotId(), r.getHeadUrl(), r.getName()))
+                .collect(Collectors.toList()));
+
 
         // 生成dummy user
         String dummyUserId = CommonUtils.uuid(USER_ID_PREFIX);
@@ -79,23 +78,20 @@ public class StartupApiHelper {
     }
 
 
-    private StartupConfigView mockView() {
-        StartupConfigView startupConfigView = new StartupConfigView();
-        // TODO
-        startupConfigView.setLogoUrl("");
-        startupConfigView.setAgeOptions(ImmutableList.of("18-25", "25-35", "35+"));
-        startupConfigView.setIntroduceText("Hello!\n who would you like\n to chat with?");
-        startupConfigView.setWelcomeText("How are you \ntoday?");
-        // TODO
-        startupConfigView.setPymlRobots(ImmutableList.<RobotStartupView>builder()
-                .add(new RobotStartupView("", "", ""))
-                .add(new RobotStartupView("", "", ""))
-                .add(new RobotStartupView("", "", ""))
-                .add(new RobotStartupView("", "", ""))
-                .add(new RobotStartupView("", "", ""))
-                .add(new RobotStartupView("", "", ""))
+    private StartupConfigModel mockModel() {
+        StartupConfigModel startupConfig = new StartupConfigModel();
+        startupConfig.setAgeOptions(ImmutableList.of("18-25", "25-35", "35+"));
+        startupConfig.setIntroduceText("Who would you like to chat with?");
+        startupConfig.setWelcomeText("How are you \ntoday?");
+        startupConfig.setPymlRobotIds(ImmutableSet.<String>builder()
+                .add("rb_test8")
+                .add("rb_test4")
+                .add("rb_test11")
+                .add("rb_test5")
+                .add("rb_test10")
+                .add("rb_test2")
                 .build());
-        return startupConfigView;
+        return startupConfig;
     }
 
 
