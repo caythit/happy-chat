@@ -224,22 +224,26 @@ public class ChatServiceImpl implements ChatService {
     private ChatResponse getRobotUnPaidRespFromAdvancedGpt(String userId, String robotId,
                                                            String content, List<FlirtopiaChat> userHistoryMessages) {
         String respContent = requestChatgpt(robotId, advancedVersionGpt, content, userHistoryMessages);
-        boolean fromHappyModel = false;
-
-        // 触发警报，请求快乐模型
-        if (chatgptRespHasWarn(respContent)) {
-            respContent = requestHappyModel(robotId, content, userHistoryMessages);
-            fromHappyModel = true;
+        // 没拿到，直接return
+        if (StringUtils.isEmpty(respContent)) {
+            return buildChatResponse(userId, robotId, respContent);
         }
 
-        ChatResponse chatResponse = buildChatResponse(userId, robotId, respContent);
-        // 来自快乐模型 要付费，记下时间
-        if (!chatResponse.isUseDefault() && fromHappyModel) {
-            updateHappyModelLatestTime(userId, robotId);
-            // todo
-            chatResponse.setPayTips(getUnPayTips());
+        //内容是否警报
+        boolean contentHasWarn = chatgptRespHasWarn(respContent);
+
+        //出现警报，直接请求快乐模型
+        if (contentHasWarn) {
+            String happyResp = requestHappyModel(robotId, content, userHistoryMessages);
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp);
+            if (!chatResponse.isUseDefault()) {
+                updateHappyModelLatestTime(userId, robotId);
+                // 快乐模型返回的话 要有付费卡
+                chatResponse.setPayTips(getUnPayTips());
+            }
+            return chatResponse;
         }
-        return chatResponse;
+        return buildChatResponse(userId, robotId, respContent);
     }
 
     /**
@@ -255,36 +259,33 @@ public class ChatServiceImpl implements ChatService {
                                                          String content, List<FlirtopiaChat> userHistoryMessages) {
         // 退场，使用普通版gpt
         String respContent = requestChatgpt(robotId, normalVersionGpt, content, userHistoryMessages);
-        boolean fromHappyModel = false;
-        boolean hasWarn = false;
-        // 触发警报
-        if (chatgptRespHasWarn(respContent)) {
-            //  超过3次，请求快乐模型
-            boolean overWarnCount = overGptWarnCount(userId, robotId);
-            if (overWarnCount) {
-                respContent = requestHappyModel(robotId, content, userHistoryMessages);
-                fromHappyModel = true;
-            } else {
-                // warn次数+1
-                addGptWarnCount(userId, robotId);
-                hasWarn = true;
-            }
+        // 没拿到，直接return
+        if (StringUtils.isEmpty(respContent)) {
+            return buildChatResponse(userId, robotId, respContent);
         }
 
-        ChatResponse chatResponse = buildChatResponse(userId, robotId, respContent);
-        // 来自快乐模型 要付费，记下时间
-        if (!chatResponse.isUseDefault()) {
-            if (fromHappyModel) {
+        //内容是否警报
+        boolean contentHasWarn = chatgptRespHasWarn(respContent);
+        // 超过3次，请求快乐模型
+        if (overGptWarnCount(userId, robotId)) {
+            String happyResp = requestHappyModel(robotId, content, userHistoryMessages);
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp);
+            if (!chatResponse.isUseDefault()) {
                 updateHappyModelLatestTime(userId, robotId);
-                // todo
+                // 快乐模型返回的话 要有付费卡
                 chatResponse.setPayTips(getUnPayTips());
             }
-            if (hasWarn) {
-                // todo
+            return chatResponse;
+        } else if (contentHasWarn) {    // 没超过三次，但也有警报
+            // warn次数+1
+            addGptWarnCount(userId, robotId);
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, respContent);
+            if (!chatResponse.isUseDefault()) {
+                // 返回加上规劝文案
                 chatResponse.setSystemTips(redisUtil.getOrDefault(chatSystemTipsKey(), defaultSystemTips));
             }
         }
-        return chatResponse;
+        return buildChatResponse(userId, robotId, respContent);
     }
 
     /**
