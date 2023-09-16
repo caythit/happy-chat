@@ -382,7 +382,7 @@ public class ChatServiceImpl implements ChatService {
             return false;
         }
         return warnList.stream()
-                .anyMatch(content::contains);
+                .anyMatch(warn-> content.toLowerCase().contains(warn.toLowerCase()));
     }
 
     private void addGptWarnCount(String userId, String robotId) {
