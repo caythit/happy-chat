@@ -4,7 +4,6 @@ import static java.lang.String.format;
 
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -46,8 +45,8 @@ public class FlirtopiaChatDao {
 
     public int insertChat(FlirtopiaChat chat) {
         String sql = "insert into " + CHAT_TABLE_NAME
-                + " (user_id, robot_id, message_id,message_type, message_from, content, extra_info, create_time, update_time) "
-                + " values (:userId, :robotId, :messageId, :messageType, :messageFrom, :content, :extraInfo, :createTime, :updateTime) "
+                + " (user_id, robot_id, message_id,message_type, message_from, content, ai_resp_reason_and_model, extra_info, create_time, update_time) "
+                + " values (:userId, :robotId, :messageId, :messageType, :messageFrom, :content, :aiRespReasonAndModel, :extraInfo, :createTime, :updateTime) "
                 + " on duplicate key update update_time = :updateTime";
         MapSqlParameterSource params = new MapSqlParameterSource();
 
@@ -57,6 +56,7 @@ public class FlirtopiaChatDao {
         params.addValue("messageType", chat.getMessageType());
         params.addValue("messageFrom", chat.getMessageFrom());
         params.addValue("content", chat.getContent());
+        params.addValue("aiRespReasonAndModel", chat.getAiRespReasonAndModel());
 
         params.addValue("extraInfo", chat.getExtraInfo());
 
@@ -66,9 +66,9 @@ public class FlirtopiaChatDao {
     }
 
     public int batchInsertChat(List<FlirtopiaChat> chats) {
-        String sql = "INSERT ignore INTO " + CHAT_TABLE_NAME
-                + " (user_id, robot_id, message_id,message_type, message_from, content, extra_info, create_time, update_time) "
-                + " values (:userId, :robotId, :messageId, :messageType, :messageFrom, :content, :extraInfo, :createTime, :updateTime) "
+        String sql = "insert into " + CHAT_TABLE_NAME
+                + " (user_id, robot_id, message_id,message_type, message_from, content, ai_resp_reason_and_model, extra_info, create_time, update_time) "
+                + " values (:userId, :robotId, :messageId, :messageType, :messageFrom, :content, :aiRespReasonAndModel, :extraInfo, :createTime, :updateTime) "
                 + " on duplicate key update update_time = :updateTime";
 
         return jdbcTemplate.batchUpdate(sql,
@@ -82,10 +82,9 @@ public class FlirtopiaChatDao {
                             params.addValue("messageType", chat.getMessageType());
                             params.addValue("messageFrom", chat.getMessageFrom());
                             params.addValue("content", chat.getContent());
+                            params.addValue("aiRespReasonAndModel", chat.getAiRespReasonAndModel());
 
                             params.addValue("extraInfo", chat.getExtraInfo());
-
-
                             params.addValue("createTime", System.currentTimeMillis());
                             params.addValue("updateTime", System.currentTimeMillis());
                             return params;

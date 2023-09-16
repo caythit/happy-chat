@@ -18,6 +18,7 @@ public class FlirtopiaChatView {
     private String messageType;
     private String messageFrom;
     private String content;
+    private String aiRespReasonAndModel;
     private long sendTime;
     private String payTips;
     private String warnTips;
@@ -29,6 +30,7 @@ public class FlirtopiaChatView {
         flirtopiaChatView.setMessageType(flirtopiaChat.getMessageType());
         flirtopiaChatView.setMessageFrom(flirtopiaChat.getMessageFrom());
         flirtopiaChatView.setContent(flirtopiaChat.getContent());
+        flirtopiaChatView.setAiRespReasonAndModel(flirtopiaChat.getAiRespReasonAndModel());
         flirtopiaChatView.setSendTime(flirtopiaChat.getCreateTime());
 
         Map<String, String> extraMap = ObjectMapperUtils.fromJSON(flirtopiaChat.getExtraInfo(), Map.class, String.class,String.class);

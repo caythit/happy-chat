@@ -47,14 +47,6 @@ CREATE TABLE `robot_ice_break_word` (
     `extra_info` text COLLATE utf8mb4_bin COMMENT '额外信息'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `robot_prompt` (
-    `id` BIGINT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
-    `robot_id` VARCHAR(50) NOT NULL COMMENT 'uuid',
-    `prompt_version` VARCHAR(50) NOT NULL COMMENT '版本：normal,advance',
-    `prompt_info` text COLLATE utf8mb4_bin COMMENT '人设信息',
-    `extra_info` text COLLATE utf8mb4_bin COMMENT '额外信息'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 CREATE TABLE `flirtopia_chat` (
     `id` BIGINT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键id',
     `create_time` BIGINT(11) UNSIGNED NOT NULL COMMENT '记录创建时间',
@@ -64,6 +56,7 @@ CREATE TABLE `flirtopia_chat` (
     `message_id` VARCHAR(50) NOT NULL COMMENT 'uuid',
     `message_type` VARCHAR(10) NOT NULL COMMENT '消息类型',
     `message_from` VARCHAR(10) NOT NULL COMMENT '消息发自谁，robot or user',
+    `ai_resp_reason_and_model` VARCHAR(100) DEFAULT NULL COMMENT 'ai回复消息的原因以及模型',
     `content` text COLLATE utf8mb4_bin COMMENT '消息内容',
     `extra_info` text COLLATE utf8mb4_bin COMMENT '额外信息',
      KEY `user_id` (`user_id`),

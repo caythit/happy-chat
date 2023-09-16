@@ -214,6 +214,7 @@ public class ChatApiHelper {
         robotRespMessage.setMessageFrom(CHAT_FROM_ROBOT);
         robotRespMessage.setMessageType("normal");
         robotRespMessage.setContent(chatResponse.getContent());
+        robotRespMessage.setAiRespReasonAndModel(chatResponse.getReasonAndModel());
         robotRespMessage.setCreateTime(System.currentTimeMillis());
         robotRespMessage.setUpdateTime(System.currentTimeMillis());
         if (StringUtils.isNotEmpty(chatResponse.getPayTips())) {

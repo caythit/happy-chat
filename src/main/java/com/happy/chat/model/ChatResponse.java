@@ -10,6 +10,8 @@ public class ChatResponse {
 
     private String content;
 
+    private String reasonAndModel;
+
     private String payTips;
 
     // 规劝提示

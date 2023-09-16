@@ -146,7 +146,7 @@ public class ChatServiceImpl implements ChatService {
         if (hasSensitiveWord) {
             log.warn("user request content contains sensitive {} {} {}", userId, robotId, content);
             prometheusUtil.perf("chat_user_request_content_contains_sensitive");
-            return getRobotDefaultResp();
+            return getRobotDefaultResp("userContentHasSensitiveWord-Default");
         }
 
         //  按时间升序排序
@@ -199,7 +199,7 @@ public class ChatServiceImpl implements ChatService {
     private ChatResponse getRobotUnPaidRespFromHappyModel(String userId, String robotId,
                                                           String content, List<FlirtopiaChat> userHistoryMessages) {
         String aiRespContent = requestHappyModel(robotId, content, userHistoryMessages);
-        ChatResponse chatResponse = buildChatResponse(userId, robotId, aiRespContent);
+        ChatResponse chatResponse = buildChatResponse(userId, robotId, aiRespContent, "unPaidTimeNotExit-HappyModel");
 
         // 来自快乐模型的回复 要更新下时间
         if (!chatResponse.isUseDefault()) {
@@ -223,7 +223,7 @@ public class ChatServiceImpl implements ChatService {
         String respContent = requestChatgpt(robotId, advancedVersionGpt, content, userHistoryMessages);
         // 没拿到，直接return
         if (StringUtils.isEmpty(respContent)) {
-            return buildChatResponse(userId, robotId, respContent);
+            return buildChatResponse(userId, robotId, respContent, "unPaidAdvancedGptEmpty-Default");
         }
 
         //内容是否警报
@@ -232,7 +232,7 @@ public class ChatServiceImpl implements ChatService {
         //出现警报，直接请求快乐模型
         if (contentHasWarn) {
             String happyResp = requestHappyModel(robotId, content, userHistoryMessages);
-            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp);
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp, "unPaidAdvancedGptWarn-HappyModel");
             if (!chatResponse.isUseDefault()) {
                 updateHappyModelLatestTime(userId, robotId);
                 // 快乐模型返回的话 要有付费卡
@@ -240,7 +240,7 @@ public class ChatServiceImpl implements ChatService {
             }
             return chatResponse;
         }
-        return buildChatResponse(userId, robotId, respContent);
+        return buildChatResponse(userId, robotId, respContent, "unPaidAdvancedGptNoWarn-AdvancedGpt");
     }
 
     /**
@@ -258,7 +258,7 @@ public class ChatServiceImpl implements ChatService {
         String respContent = requestChatgpt(robotId, normalVersionGpt, content, userHistoryMessages);
         // 没拿到，直接return
         if (StringUtils.isEmpty(respContent)) {
-            return buildChatResponse(userId, robotId, respContent);
+            return buildChatResponse(userId, robotId, respContent, "unPaidNormalGptEmpty-Default");
         }
 
         //内容是否警报
@@ -266,7 +266,7 @@ public class ChatServiceImpl implements ChatService {
         // 超过3次，请求快乐模型
         if (overGptWarnCount(userId, robotId)) {
             String happyResp = requestHappyModel(robotId, content, userHistoryMessages);
-            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp);
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp, "unPaidNormalGptWarn-HappyModel");
             if (!chatResponse.isUseDefault()) {
                 updateHappyModelLatestTime(userId, robotId);
                 // 快乐模型返回的话 要有付费卡
@@ -276,13 +276,14 @@ public class ChatServiceImpl implements ChatService {
         } else if (contentHasWarn) {    // 没超过三次，但也有警报
             // warn次数+1
             addGptWarnCount(userId, robotId);
-            ChatResponse chatResponse = buildChatResponse(userId, robotId, respContent);
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, respContent, "unPaidNormalGptWarnNotEnough-NormalGpt");
             if (!chatResponse.isUseDefault()) {
                 // 返回加上规劝文案
                 chatResponse.setSystemTips(redisUtil.getOrDefault(chatSystemTipsKey(), defaultSystemTips));
             }
+            return chatResponse;
         }
-        return buildChatResponse(userId, robotId, respContent);
+        return buildChatResponse(userId, robotId, respContent, "unPaidNormalGptNoWarn-NormalGpt");
     }
 
     /**
@@ -300,11 +301,11 @@ public class ChatServiceImpl implements ChatService {
         boolean timeForExit = checkTimeForExitHappyModel(userId, robotId);
         if (timeForExit) { //退场，回退到请求热情版
             String responseContent = requestChatgpt(robotId, advancedVersionGpt, userReqContent, userHistoryMessages);
-            return buildChatResponse(userId, robotId, responseContent);
+            return buildChatResponse(userId, robotId, responseContent, "alreadyPaidHappyModelTimeExit-AdvancedGpt");
         }
         // 未退场
         String responseContent = requestHappyModel(robotId, userReqContent, userHistoryMessages);
-        ChatResponse chatResponse = buildChatResponse(userId, robotId, responseContent);
+        ChatResponse chatResponse = buildChatResponse(userId, robotId, responseContent, "alreadyPaid-HappyModel");
         // 来自快乐模型的回复 要更新下时间
         if (!chatResponse.isUseDefault()) {
             updateHappyModelLatestTime(userId, robotId);
@@ -312,40 +313,42 @@ public class ChatServiceImpl implements ChatService {
         return chatResponse;
     }
 
-    private ChatResponse buildChatResponse(String userId, String robotId, String content) {
+    private ChatResponse buildChatResponse(String userId, String robotId, String content, String reasonAndModel) {
         // 为空
         if (StringUtils.isEmpty(content)) {
             log.error("buildChatResponse empty {} {} {}", userId, robotId, content);
             prometheusUtil.perf("chat_ai_resp_empty");
-            return getRobotDefaultResp();
+            return getRobotDefaultResp(reasonAndModel + "-empty");
         }
         // 敏感词
         if (hasSensitiveWord(content)) {
             log.error("buildChatResponse hasSensitiveWord {} {} {}", userId, robotId, content);
             prometheusUtil.perf("chat_ai_resp_contains_sensitive");
-            return getRobotDefaultResp();
+            return getRobotDefaultResp(reasonAndModel + "-sensitive");
         }
 
         return ChatResponse.builder()
                 .content(content)
+                .reasonAndModel(reasonAndModel)
                 .build();
     }
 
     // 默认兜底回复
-    private ChatResponse getRobotDefaultResp() {
+    private ChatResponse getRobotDefaultResp(String reasonAndModel) {
         List<String> defaultResps = redisUtil.range(defaultRobotRespChatKey(), 0, -1);
         if (CollectionUtils.isEmpty(defaultResps)) {
             log.error("robot default resp empty");
             prometheusUtil.perf("get_robot_default_resp_empty");
-            // todo 默认的
             return ChatResponse.builder()
                     .content("I have no idea about it")
                     .useDefault(true)
+                    .reasonAndModel(reasonAndModel)
                     .build();
         }
         return ChatResponse.builder()
                 .content(defaultResps.get(RandomUtils.nextInt(0, defaultResps.size())))
                 .useDefault(true)
+                .reasonAndModel(reasonAndModel)
                 .build();
     }
 

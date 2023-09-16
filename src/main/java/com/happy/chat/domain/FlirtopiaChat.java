@@ -11,6 +11,7 @@ public class FlirtopiaChat {
     private String messageFrom;
     private String content;
     private String extraInfo;
+    private String aiRespReasonAndModel;
     private long createTime;
     private long updateTime;
 }
