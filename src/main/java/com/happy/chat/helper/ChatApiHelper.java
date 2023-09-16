@@ -143,9 +143,12 @@ public class ChatApiHelper {
 
     public ChatHistoryView getUserRobotHistoryChats(String userId, String robotId) {
         ChatHistoryView chatHistoryView = new ChatHistoryView();
-        chatHistoryView.setRobotInfoView(RobotInfoView.convertRobot(robotService.getRobotById(robotId)));
-
         boolean hasPaid = paymentService.userHasPayedRobot(userId, robotId);
+
+        RobotInfoView robotInfoView = RobotInfoView.convertRobot(robotService.getRobotById(robotId));
+        robotInfoView.setUserHasSubscribe(hasPaid);
+        chatHistoryView.setRobotInfoView(robotInfoView);
+
         List<FlirtopiaChat> flirtopiaChats = chatService.getUserRobotHistoryChats(userId, robotId);
         chatHistoryView.setFlirtopiaChatViewList(flirtopiaChats.stream().map(x -> {
             // 付费后要变更成付费的文案
