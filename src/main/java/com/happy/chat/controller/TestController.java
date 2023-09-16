@@ -98,7 +98,7 @@ public class TestController {
 
         // 警报
         redisUtil.delete(chatWarnWordKey());
-        redisUtil.rightPushAll(chatWarnWordKey(), "are LLM", "are robot", "are chat gpt");
+        redisUtil.rightPushAll(chatWarnWordKey(), "chicken and duckling go swimming together");
         result.put(chatWarnWordKey(), redisUtil.range(chatWarnWordKey(), 0, -1));
 
         // 默认回复
