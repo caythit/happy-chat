@@ -123,7 +123,7 @@ public class UserController {
         }
 
         // 检查旧密码是否正确
-        ErrorEnum apiErrorEnum = useHelper.checkPassword(userId, oldPwd, "modifyPassword");
+        ErrorEnum apiErrorEnum = useHelper.checkPassword(userId, oldPwd, "modify_pwd");
         if (apiErrorEnum != ErrorEnum.SUCCESS) {
             return ApiResult.ofFail(apiErrorEnum);
         }

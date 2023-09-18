@@ -1,21 +1,20 @@
 package com.happy.chat.controller;
 
-import static com.happy.chat.constants.Constant.COOKIE_SESSION_ID;
+import static com.happy.chat.constants.Constant.PERF_SETTING_MODULE;
 
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.happy.chat.annotation.LoginRequired;
 import com.happy.chat.enums.ErrorEnum;
 import com.happy.chat.helper.EmailHelper;
-import com.happy.chat.helper.UserApiHelper;
+import com.happy.chat.helper.SettingApiHelper;
 import com.happy.chat.uitls.ApiResult;
+import com.happy.chat.uitls.PrometheusUtils;
 
 // 第一步 输入邮箱，发送邮箱校验码，检查：邮箱是否已被使用，没使用则提示；邮箱格式验证
 // 第二步 验证邮箱校验码
@@ -25,18 +24,22 @@ import com.happy.chat.uitls.ApiResult;
 @RequestMapping("/rest/h/forgot/password")
 public class ForgotPasswordController {
     @Autowired
-    private UserApiHelper userApiHelper;
+    private SettingApiHelper settingApiHelper;
 
     @Autowired
     private EmailHelper emailHelper;
 
+    @Autowired
+    private PrometheusUtils prometheusUtil;
+
     // 第一步 输入邮箱，发送邮箱校验码，检查：邮箱是否已被使用，没使用则提示；邮箱格式验证
     @RequestMapping("/sendEmailCode")
     public Map<String, Object> send(@RequestParam("email") String email) {
-        // 验证邮箱 todo 确认subject和text
+        prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_send_email_api_enter");
         ErrorEnum errorEnum = emailHelper.sendCode(email, "Verify your email address",
-                true, "forgot password");
+                true, "forgotpwd");
         if (errorEnum == ErrorEnum.SUCCESS) {
+            prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_send_email_success");
             return ApiResult.ofSuccess();
         }
         return ApiResult.ofFail(errorEnum);
@@ -62,8 +65,11 @@ public class ForgotPasswordController {
     @PostMapping("/verifyEmailCode")
     public Map<String, Object> verifyEmailCode(@RequestParam("email") String email,
                                                @RequestParam("emailVerifyCode") String emailVerifyCode) {
+        prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_verify_email_api_enter");
+
         ErrorEnum errorEnum = emailHelper.verifyCode(email, emailVerifyCode, "forgotPassword");
         if (errorEnum == ErrorEnum.SUCCESS) {
+            prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_verify_email_success");
             return ApiResult.ofSuccess();
         }
         return ApiResult.ofFail(errorEnum);
@@ -73,7 +79,14 @@ public class ForgotPasswordController {
     @PostMapping("/reset")
     public Map<String, Object> reset(@RequestParam("email") String email,
                                      @RequestParam("newPwd") String pwd) {
-        return userApiHelper.forgotResetPassword(email, pwd);
+        prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_reset_api_enter");
+
+        ErrorEnum errorEnum = settingApiHelper.forgotResetPassword(email, pwd);
+        if (errorEnum == ErrorEnum.SUCCESS) {
+            prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_reset_success");
+            return ApiResult.ofSuccess();
+        }
+        return ApiResult.ofFail(errorEnum);
     }
 
 

@@ -1,6 +1,8 @@
 package com.happy.chat.helper;
 
 import static com.happy.chat.constants.Constant.DATA;
+import static com.happy.chat.constants.Constant.PERF_ERROR_MODULE;
+import static com.happy.chat.constants.Constant.PERF_FEED_MODULE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,9 +78,9 @@ public class FeedApiHelper {
 
         if (CollectionUtils.isEmpty(robotInfoViewList)) {
             log.error("feed robot get failed, userId={}, dummyUd={}", userId, dummyUid);
-            prometheusUtil.perf("feed_robot_get_failed");
+            prometheusUtil.perf(PERF_ERROR_MODULE ,"feed_render_failed_by_robot_empty");
         } else {
-            prometheusUtil.perf("feed_robot_get_success");
+            prometheusUtil.perf(PERF_FEED_MODULE ,"feed_render_success");
         }
         result.put(DATA, feedView);
         return result;

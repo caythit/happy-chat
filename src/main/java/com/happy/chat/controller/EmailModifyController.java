@@ -1,6 +1,8 @@
 package com.happy.chat.controller;
 
 import static com.happy.chat.constants.Constant.COOKIE_SESSION_ID;
+import static com.happy.chat.constants.Constant.PERF_ERROR_MODULE;
+import static com.happy.chat.constants.Constant.PERF_SETTING_MODULE;
 
 import java.util.Map;
 
@@ -15,8 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.happy.chat.annotation.LoginRequired;
 import com.happy.chat.enums.ErrorEnum;
 import com.happy.chat.helper.EmailHelper;
+import com.happy.chat.helper.SettingApiHelper;
 import com.happy.chat.helper.UserApiHelper;
 import com.happy.chat.uitls.ApiResult;
+import com.happy.chat.uitls.PrometheusUtils;
 
 // 第一步输入密码后校验是否正确，查db。
 // 第二步发送邮箱校验码，邮箱格式验证
@@ -27,10 +31,16 @@ import com.happy.chat.uitls.ApiResult;
 public class EmailModifyController {
 
     @Autowired
+    private SettingApiHelper settingApiHelper;
+
+    @Autowired
     private UserApiHelper userApiHelper;
 
     @Autowired
     private EmailHelper emailHelper;
+
+    @Autowired
+    private PrometheusUtils prometheusUtil;
 
     // 第1步：输入密码后校验是否正确
     @LoginRequired
@@ -39,24 +49,31 @@ public class EmailModifyController {
                                              @RequestParam("ud") String dummyUid,
                                              @RequestParam("password") String password) {
 
+        prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_check_pwd_api_enter");
+
         if (StringUtils.isNotEmpty(userId) && !StringUtils.equals(userId, dummyUid)) { // 登录了 需要和ud做比较
+            prometheusUtil.perf(PERF_ERROR_MODULE, "email_rebind_userid_unmatched");
             return ApiResult.ofFail(ErrorEnum.UD_NOT_MATCHED);
         }
         // 检查旧密码是否正确
-        ErrorEnum apiErrorEnum = userApiHelper.checkPassword(userId, password, "modifyEmail");
-        if (apiErrorEnum != ErrorEnum.SUCCESS) {
-            return ApiResult.ofFail(apiErrorEnum);
+        ErrorEnum apiErrorEnum = userApiHelper.checkPassword(userId, password, "modify_email");
+        if (apiErrorEnum == ErrorEnum.SUCCESS) {
+            prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_check_pwd_success");
+            return ApiResult.ofSuccess();
         }
-        return ApiResult.ofSuccess();
+        return ApiResult.ofFail(apiErrorEnum);
     }
 
     // 第2步：邮箱格式验证，发送验证码
     @LoginRequired
     @RequestMapping("/sendEmailCode")
     public Map<String, Object> send(@RequestParam("email") String email) {
+        prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_send_email_api_enter");
+
         // 验证邮箱
-        ErrorEnum errorEnum = emailHelper.sendCode(email, "Verify your email address",  false, "bind email");
+        ErrorEnum errorEnum = emailHelper.sendCode(email, "Verify your email address", false, "bindemail");
         if (errorEnum == ErrorEnum.SUCCESS) {
+            prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_send_email_success");
             return ApiResult.ofSuccess();
         }
         return ApiResult.ofFail(errorEnum);
@@ -68,9 +85,16 @@ public class EmailModifyController {
     public Map<String, Object> verifyEmailCode(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                                @RequestParam("email") String email,
                                                @RequestParam("emailVerifyCode") String emailVerifyCode) {
+        prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_verify_code_api_enter");
+
         ErrorEnum errorEnum = emailHelper.verifyCode(email, emailVerifyCode, "modifyEmail");
         if (errorEnum == ErrorEnum.SUCCESS) {
-            return userApiHelper.rebindEmail(userId, email);
+            prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_verify_code_success");
+            errorEnum = settingApiHelper.rebindEmail(userId, email);
+            if (errorEnum == ErrorEnum.SUCCESS) {
+                prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_success");
+                return ApiResult.ofSuccess();
+            }
         }
         return ApiResult.ofFail(errorEnum);
     }

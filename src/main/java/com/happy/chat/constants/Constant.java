@@ -33,6 +33,7 @@ public class Constant {
     public static final String PERF_PAYMENT_MODULE = "payment";
     public static final String PERF_FEED_MODULE = "feed";
     public static final String PERF_EMAIL_MODULE = "email";
+    public static final String PERF_SETTING_MODULE = "setting";
     public static final String PERF_CHAT_MODULE = "chat";
 
     // 必须重点关注，比如写db失败等不符合预期的中断错误
