@@ -1,11 +1,11 @@
 package com.happy.chat.service.impl;
 
 import static com.happy.chat.constants.Constant.CHAT_FROM_USER;
-import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
+import static com.happy.chat.constants.Constant.PERF_CHAT_MODULE;
+import static com.happy.chat.constants.Constant.PERF_ERROR_MODULE;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSystemTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatUnPayTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatWarnWordKey;
-import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
 import static com.happy.chat.uitls.CacheKeyProvider.gptApiTokenKey;
 import static com.happy.chat.uitls.CacheKeyProvider.happyModelHttpUrl;
 import static com.happy.chat.uitls.CacheKeyProvider.userChatgptWarnKey;
@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import com.happy.chat.dao.FlirtopiaChatDao;
 import com.happy.chat.domain.FlirtopiaChat;
 import com.happy.chat.domain.IceBreakWord;
+import com.happy.chat.model.ChatRequest;
 import com.happy.chat.model.ChatResponse;
 import com.happy.chat.model.HappyModelRequest;
 import com.happy.chat.service.ChatService;
@@ -104,6 +105,11 @@ public class ChatServiceImpl implements ChatService {
         return flirtopiaChatDao.insertChat(flirtopiaChat);
     }
 
+    @Override
+    public int batchInsert(List<FlirtopiaChat> flirtopiaChats) {
+        return flirtopiaChatDao.batchInsertChat(flirtopiaChats);
+    }
+
     /**
      * 1、用户输入内容有敏感词，直接返回默认回复（取缓存数据，若没有取到则返回I have no idea）
      * <p>
@@ -133,20 +139,26 @@ public class ChatServiceImpl implements ChatService {
      * 大于阈值，调用快乐模型。对快乐模型的回复内容同样做检测，空或者敏感词，返回默认回复，否则返回客户端回复内容外还要告诉客户端该内容付费要加上高斯模糊
      * 2-2-2-2）热情版：调用快乐模型，对快乐模型的回复内容同样做检测，空或者敏感词，返回默认回复，否则返回客户端回复内容外还要告诉客户端该内容付费要加上高斯模糊
      *
-     * @param userId
-     * @param robotId
-     * @param content
      * @return
      */
     @Override
-    public ChatResponse requestChat(String userId, String robotId, String content) {
+    public ChatResponse requestChat(ChatRequest chatRequest) {
+        String userId = chatRequest.getUserId();
+        String robotId = chatRequest.getRobotId();
+        String content = chatRequest.getUserWord();
+        String robotDefaultResp = chatRequest.getRobotDefaultResp();
+        List<String> sensitiveWords = chatRequest.getSensitiveWords();
 
-        boolean hasSensitiveWord = hasSensitiveWord(content);
+        boolean hasSensitiveWord = hasSensitiveWord(content, sensitiveWords);
         // 敏感词 直接返回
         if (hasSensitiveWord) {
             log.warn("user request content contains sensitive {} {} {}", userId, robotId, content);
-            prometheusUtil.perf("chat_user_request_content_contains_sensitive");
-            return getRobotDefaultResp("userContentHasSensitiveWord-Default");
+            prometheusUtil.perf(PERF_CHAT_MODULE, "user_word_has_sensitive");
+            return ChatResponse.builder()
+                    .content(robotDefaultResp)
+                    .useDefault(true)
+                    .reasonAndModel("userContentHasSensitiveWord-Default")
+                    .build();
         }
 
         //  按时间升序排序
@@ -155,10 +167,10 @@ public class ChatServiceImpl implements ChatService {
         // 是否付费 若付费，直接调用快乐模型，调用前检查是否超过快乐模型过期时间，若已经过期，则降级调用热情版gpt
         boolean hasPay = paymentService.userHasPayedRobot(userId, robotId);
         if (hasPay) {
-            return getRobotAlreadyPaidResp(userId, robotId, content, userHistoryMessages);
+            return getRobotAlreadyPaidResp(userId, robotId, content, userHistoryMessages, robotDefaultResp, sensitiveWords);
         }
         // 未付费请求
-        return getRobotUnPaidResp(userId, robotId, content, userHistoryMessages);
+        return getRobotUnPaidResp(userId, robotId, content, userHistoryMessages, robotDefaultResp, sensitiveWords);
     }
 
     /**
@@ -170,44 +182,36 @@ public class ChatServiceImpl implements ChatService {
      * @param userHistoryMessages
      * @return
      */
-    private ChatResponse getRobotUnPaidResp(String userId, String robotId, String content, List<FlirtopiaChat> userHistoryMessages) {
+    private ChatResponse getRobotUnPaidResp(String userId, String robotId, String content,
+                                            List<FlirtopiaChat> userHistoryMessages,
+                                            String robotDefaultResp, List<String> sensitiveWords) {
         // 做下快乐模型退场检测
         boolean timeForExit = checkTimeForExitHappyModel(userId, robotId);
-        // 若没退场 使用快乐模型回复
+        // 没退场 使用快乐模型回复
         if (!timeForExit) {
-            return getRobotUnPaidRespFromHappyModel(userId, robotId, content, userHistoryMessages);
+            String aiRespContent = requestHappyModel(robotId, content, userHistoryMessages);
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, aiRespContent,
+                    "unPaidTimeNotExit:HappyModel", robotDefaultResp, sensitiveWords);
+
+            // 来自快乐模型的回复 要更新下时间
+            if (!chatResponse.isUseDefault()) {
+                updateHappyModelLatestTime(userId, robotId);
+                chatResponse.setPayTips(getUnPayTips());
+            }
+            return chatResponse;
         }
 
-        // 退场，轮次够，使用热情版gpt
+        // 即从没进去过快乐模型，退场，轮次够，使用热情版gpt
         if (isEnterChatgptAdvancedModel(userHistoryMessages)) {
             log.info("isEnterChatgptAdvancedModel {} {}", userId, robotId);
-            return getRobotUnPaidRespFromAdvancedGpt(userId, robotId, content, userHistoryMessages);
+            return getRobotUnPaidRespFromAdvancedGpt(userId, robotId, content, userHistoryMessages,
+                    robotDefaultResp, sensitiveWords);
         }
         // 退场，轮次不够，使用热情版gpt
-        return getRobotUnPaidRespFromNormalGpt(userId, robotId, content, userHistoryMessages);
+        return getRobotUnPaidRespFromNormalGpt(userId, robotId, content, userHistoryMessages,
+                robotDefaultResp, sensitiveWords);
     }
 
-    /**
-     * 未付费 快乐模型回复
-     *
-     * @param userId
-     * @param robotId
-     * @param content
-     * @param userHistoryMessages
-     * @return
-     */
-    private ChatResponse getRobotUnPaidRespFromHappyModel(String userId, String robotId,
-                                                          String content, List<FlirtopiaChat> userHistoryMessages) {
-        String aiRespContent = requestHappyModel(robotId, content, userHistoryMessages);
-        ChatResponse chatResponse = buildChatResponse(userId, robotId, aiRespContent, "unPaidTimeNotExit-HappyModel");
-
-        // 来自快乐模型的回复 要更新下时间
-        if (!chatResponse.isUseDefault()) {
-            updateHappyModelLatestTime(userId, robotId);
-            chatResponse.setPayTips(getUnPayTips());
-        }
-        return chatResponse;
-    }
 
     /**
      * 未付费 热情版gpt回复
@@ -219,11 +223,12 @@ public class ChatServiceImpl implements ChatService {
      * @return
      */
     private ChatResponse getRobotUnPaidRespFromAdvancedGpt(String userId, String robotId,
-                                                           String content, List<FlirtopiaChat> userHistoryMessages) {
+                                                           String content, List<FlirtopiaChat> userHistoryMessages,
+                                                           String robotDefaultResp, List<String> sensitiveWords) {
         String respContent = requestChatgpt(robotId, advancedVersionGpt, content, userHistoryMessages);
         // 没拿到，直接return
         if (StringUtils.isEmpty(respContent)) {
-            return buildChatResponse(userId, robotId, respContent, "unPaidAdvancedGptEmpty-Default");
+            return buildChatResponse(userId, robotId, respContent, "unPaidAdvancedGptEmpty:Default", robotDefaultResp, sensitiveWords);
         }
 
         //内容是否警报
@@ -232,7 +237,7 @@ public class ChatServiceImpl implements ChatService {
         //出现警报，直接请求快乐模型
         if (contentHasWarn) {
             String happyResp = requestHappyModel(robotId, content, userHistoryMessages);
-            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp, "unPaidAdvancedGptWarn-HappyModel");
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp, "unPaidAdvancedGptWarn:HappyModel", robotDefaultResp, sensitiveWords);
             if (!chatResponse.isUseDefault()) {
                 updateHappyModelLatestTime(userId, robotId);
                 // 快乐模型返回的话 要有付费卡
@@ -240,7 +245,7 @@ public class ChatServiceImpl implements ChatService {
             }
             return chatResponse;
         }
-        return buildChatResponse(userId, robotId, respContent, "unPaidAdvancedGptNoWarn-AdvancedGpt");
+        return buildChatResponse(userId, robotId, respContent, "unPaidAdvancedGptNoWarn:AdvancedGpt", robotDefaultResp, sensitiveWords);
     }
 
     /**
@@ -253,12 +258,14 @@ public class ChatServiceImpl implements ChatService {
      * @return
      */
     private ChatResponse getRobotUnPaidRespFromNormalGpt(String userId, String robotId,
-                                                         String content, List<FlirtopiaChat> userHistoryMessages) {
+                                                         String content, List<FlirtopiaChat> userHistoryMessages,
+                                                         String robotDefaultResp, List<String> sensitiveWords) {
         // 退场，使用普通版gpt
         String respContent = requestChatgpt(robotId, normalVersionGpt, content, userHistoryMessages);
         // 没拿到，直接return
         if (StringUtils.isEmpty(respContent)) {
-            return buildChatResponse(userId, robotId, respContent, "unPaidNormalGptEmpty-Default");
+            return buildChatResponse(userId, robotId, respContent, "unPaidNormalGptEmpty:Default",
+                    robotDefaultResp, sensitiveWords);
         }
 
         //内容是否警报
@@ -266,7 +273,8 @@ public class ChatServiceImpl implements ChatService {
         // 超过3次，请求快乐模型
         if (overGptWarnCount(userId, robotId)) {
             String happyResp = requestHappyModel(robotId, content, userHistoryMessages);
-            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp, "unPaidNormalGptWarn-HappyModel");
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp, "unPaidNormalGptWarn:HappyModel",
+                    robotDefaultResp, sensitiveWords);
             if (!chatResponse.isUseDefault()) {
                 updateHappyModelLatestTime(userId, robotId);
                 // 快乐模型返回的话 要有付费卡
@@ -276,14 +284,16 @@ public class ChatServiceImpl implements ChatService {
         } else if (contentHasWarn) {    // 没超过三次，但也有警报
             // warn次数+1
             addGptWarnCount(userId, robotId);
-            ChatResponse chatResponse = buildChatResponse(userId, robotId, respContent, "unPaidNormalGptWarnNotEnough-NormalGpt");
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, respContent,
+                    "unPaidNormalGptWarnNotEnough-NormalGpt", robotDefaultResp, sensitiveWords);
             if (!chatResponse.isUseDefault()) {
                 // 返回加上规劝文案
                 chatResponse.setSystemTips(redisUtil.getOrDefault(chatSystemTipsKey(), defaultSystemTips));
             }
             return chatResponse;
         }
-        return buildChatResponse(userId, robotId, respContent, "unPaidNormalGptNoWarn-NormalGpt");
+        return buildChatResponse(userId, robotId, respContent, "unPaidNormalGptNoWarn:NormalGpt",
+                robotDefaultResp, sensitiveWords);
     }
 
     /**
@@ -296,16 +306,19 @@ public class ChatServiceImpl implements ChatService {
      * @return
      */
     private ChatResponse getRobotAlreadyPaidResp(String userId, String robotId, String userReqContent,
-                                                 List<FlirtopiaChat> userHistoryMessages) {
+                                                 List<FlirtopiaChat> userHistoryMessages,
+                                                 String robotDefaultResp, List<String> sensitiveWords) {
         // 快乐模型是否退场机制
         boolean timeForExit = checkTimeForExitHappyModel(userId, robotId);
         if (timeForExit) { //退场，回退到请求热情版
             String responseContent = requestChatgpt(robotId, advancedVersionGpt, userReqContent, userHistoryMessages);
-            return buildChatResponse(userId, robotId, responseContent, "alreadyPaidHappyModelTimeExit-AdvancedGpt");
+            return buildChatResponse(userId, robotId, responseContent,
+                    "alreadyPaidHappyModelTimeExit:AdvancedGpt", robotDefaultResp, sensitiveWords);
         }
         // 未退场
         String responseContent = requestHappyModel(robotId, userReqContent, userHistoryMessages);
-        ChatResponse chatResponse = buildChatResponse(userId, robotId, responseContent, "alreadyPaid-HappyModel");
+        ChatResponse chatResponse = buildChatResponse(userId, robotId, responseContent,
+                "alreadyPaid:HappyModel", robotDefaultResp, sensitiveWords);
         // 来自快乐模型的回复 要更新下时间
         if (!chatResponse.isUseDefault()) {
             updateHappyModelLatestTime(userId, robotId);
@@ -313,41 +326,32 @@ public class ChatServiceImpl implements ChatService {
         return chatResponse;
     }
 
-    private ChatResponse buildChatResponse(String userId, String robotId, String content, String reasonAndModel) {
+    private ChatResponse buildChatResponse(String userId, String robotId, String content, String reasonAndModel,
+                                           String robotDefaultResp, List<String> sensitiveWords) {
         // 为空
         if (StringUtils.isEmpty(content)) {
             log.error("buildChatResponse empty {} {} {}", userId, robotId, content);
-            prometheusUtil.perf("chat_ai_resp_empty");
-            return getRobotDefaultResp(reasonAndModel + "-empty");
-        }
-        // 敏感词
-        if (hasSensitiveWord(content)) {
-            log.error("buildChatResponse hasSensitiveWord {} {} {}", userId, robotId, content);
-            prometheusUtil.perf("chat_ai_resp_contains_sensitive");
-            return getRobotDefaultResp(reasonAndModel + "-sensitive");
-        }
-
-        return ChatResponse.builder()
-                .content(content)
-                .reasonAndModel(reasonAndModel)
-                .build();
-    }
-
-    // 默认兜底回复
-    private ChatResponse getRobotDefaultResp(String reasonAndModel) {
-        List<String> defaultResps = redisUtil.range(defaultRobotRespChatKey(), 0, -1);
-        if (CollectionUtils.isEmpty(defaultResps)) {
-            log.error("robot default resp empty");
-            prometheusUtil.perf("get_robot_default_resp_empty");
+            prometheusUtil.perf(PERF_CHAT_MODULE, "chat_ai_resp_empty:" + reasonAndModel);
+            prometheusUtil.perf(PERF_ERROR_MODULE, "chat_ai_resp_empty:" + reasonAndModel);
             return ChatResponse.builder()
-                    .content("I have no idea about it")
+                    .content(robotDefaultResp)
                     .useDefault(true)
-                    .reasonAndModel(reasonAndModel)
+                    .reasonAndModel(reasonAndModel + ":empty")
                     .build();
         }
+        // 敏感词
+        if (hasSensitiveWord(content, sensitiveWords)) {
+            log.error("buildChatResponse hasSensitiveWord {} {} {}", userId, robotId, content);
+            prometheusUtil.perf(PERF_CHAT_MODULE, "chat_ai_resp_contains_sensitive:" + reasonAndModel);
+            return ChatResponse.builder()
+                    .content(robotDefaultResp)
+                    .useDefault(true)
+                    .reasonAndModel(reasonAndModel + ":sensitive")
+                    .build();
+        }
+        prometheusUtil.perf(PERF_CHAT_MODULE, "chat_ai_resp_success:" + reasonAndModel);
         return ChatResponse.builder()
-                .content(defaultResps.get(RandomUtils.nextInt(0, defaultResps.size())))
-                .useDefault(true)
+                .content(content)
                 .reasonAndModel(reasonAndModel)
                 .build();
     }
@@ -357,7 +361,7 @@ public class ChatServiceImpl implements ChatService {
         List<String> results = redisUtil.range(chatUnPayTipsKey(), 0, -1);
         if (CollectionUtils.isEmpty(results)) {
             log.error("robot unpay tips empty");
-            prometheusUtil.perf("get_robot_unpay_tips_empty");
+            prometheusUtil.perf(PERF_CHAT_MODULE, "get_robot_unpay_tips_empty");
             return defaultToPayTips;
         }
         return results.get(RandomUtils.nextInt(0, results.size()));
@@ -374,18 +378,17 @@ public class ChatServiceImpl implements ChatService {
         return userHistoryMessages.size() >= Integer.parseInt(val);
     }
 
-    // todo
     private boolean chatgptRespHasWarn(String content) {
         if (StringUtils.isEmpty(content)) {
             return false;
         }
         List<String> warnList = redisUtil.range(chatWarnWordKey(), 0, -1);
         if (CollectionUtils.isEmpty(warnList)) {
-            prometheusUtil.perf("get_chat_warn_keyword_empty");
+            prometheusUtil.perf(PERF_CHAT_MODULE, "get_chat_warn_keyword_empty");
             return false;
         }
         return warnList.stream()
-                .anyMatch(warn-> content.toLowerCase().contains(warn.toLowerCase()));
+                .anyMatch(warn -> content.toLowerCase().contains(warn.toLowerCase()));
     }
 
     private void addGptWarnCount(String userId, String robotId) {
@@ -451,7 +454,7 @@ public class ChatServiceImpl implements ChatService {
         try {
             String url = redisUtil.get(happyModelHttpUrl());
             if (StringUtils.isEmpty(url)) {
-                prometheusUtil.perf("chat_happy_model_url_empty");
+                prometheusUtil.perf(PERF_ERROR_MODULE, "chat_happy_model_url_empty");
                 return null;
             }
             Response response = okHttpUtils.postJson(url, ObjectMapperUtils.toJSON(happyModelRequest));
@@ -464,7 +467,7 @@ public class ChatServiceImpl implements ChatService {
             }
         } catch (Exception e) {
             log.error("requestHappyModel exception", e);
-            prometheusUtil.perf("chat_happy_model_return_empty_" + robotId);
+            prometheusUtil.perf(PERF_ERROR_MODULE, "chat_happy_model_return_empty");
         }
         return null;
     }
@@ -484,14 +487,14 @@ public class ChatServiceImpl implements ChatService {
         String prompt = FileUtils.getFileContent(fileName);
         if (StringUtils.isEmpty(prompt)) {
             log.error("robot {} has no prompt {} ", robotId, version);
-            prometheusUtil.perf("get_robot_prompt_empty_" + robotId);
+            prometheusUtil.perf(PERF_ERROR_MODULE, "get_robot_prompt_empty");
             return null;
         }
 
         List<String> apiKeys = redisUtil.range(gptApiTokenKey(), 0, -1);
         if (CollectionUtils.isEmpty(apiKeys)) {
             log.error("chat gpt apikey empty {}", robotId);
-            prometheusUtil.perf("get_gpt_api_key_failed");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "get_gpt_api_key_failed");
             return null;
         }
 
@@ -512,27 +515,18 @@ public class ChatServiceImpl implements ChatService {
 
         ChatMessage response = openAIService.requestChatCompletion(apiKeys, messages);
         if (response == null) {
-            prometheusUtil.perf("chat_open_ai_return_empty_" + robotId);
+            log.error("chat open ai return empty {}", robotId);
+            prometheusUtil.perf(PERF_ERROR_MODULE, "chat_open_ai_return_empty");
             return null;
         }
         return response.getContent();
     }
 
-    private boolean hasSensitiveWord(String content) {
+    private boolean hasSensitiveWord(String content, List<String> sensitiveWords) {
         if (StringUtils.isEmpty(content)) {
-            return false;
-        }
-        List<String> sensitiveWords = redisUtil.range(chatSensitiveWordKey(), 0, -1);
-        if (CollectionUtils.isEmpty(sensitiveWords)) {
-            prometheusUtil.perf("get_chat_sensitive_keyword_empty");
             return false;
         }
         return sensitiveWords.stream()
                 .anyMatch(content::contains);
-    }
-
-    @Override
-    public int batchInsert(List<FlirtopiaChat> flirtopiaChats) {
-        return flirtopiaChatDao.batchInsertChat(flirtopiaChats);
     }
 }

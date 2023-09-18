@@ -9,6 +9,8 @@ import static com.happy.chat.constants.Constant.MESSAGE_ID_PREFIX;
 import static com.happy.chat.constants.Constant.PERF_CHAT_MODULE;
 import static com.happy.chat.constants.Constant.PERF_ERROR_MODULE;
 import static com.happy.chat.uitls.CacheKeyProvider.chatFinishPayTipsKey;
+import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
+import static com.happy.chat.uitls.CacheKeyProvider.defaultRobotRespChatKey;
 import static java.util.stream.Collectors.groupingBy;
 
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import com.happy.chat.domain.FlirtopiaChat;
 import com.happy.chat.domain.IceBreakWord;
 import com.happy.chat.domain.Robot;
 import com.happy.chat.enums.ErrorEnum;
+import com.happy.chat.model.ChatRequest;
 import com.happy.chat.model.ChatResponse;
 import com.happy.chat.service.ChatService;
 import com.happy.chat.service.PaymentService;
@@ -206,7 +209,14 @@ public class ChatApiHelper {
         }
 
         // 请求聊天回复，逻辑复杂
-        ChatResponse chatResponse = chatService.requestChat(userId, robotId, content);
+        ChatResponse chatResponse = chatService.requestChat(
+                ChatRequest.builder()
+                        .userId(userId)
+                        .robotId(robotId)
+                        .userWord(content)
+                        .robotDefaultResp(getRobotDefaultResp())
+                        .sensitiveWords(getSensitiveWords())
+                        .build());
 
         // 没拿到
         if (chatResponse == null) {
@@ -247,5 +257,23 @@ public class ChatApiHelper {
         result.put(DATA, FlirtopiaChatView.convertChat(robotRespMessage));
         return result;
 
+    }
+
+    private String getRobotDefaultResp() {
+        List<String> defaultResps = redisUtil.range(defaultRobotRespChatKey(), 0, -1);
+        if (CollectionUtils.isEmpty(defaultResps)) {
+            log.error("robot default resp empty");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "get_robot_default_resp_empty");
+            return "I have no idea about it";
+        }
+        return defaultResps.get(RandomUtils.nextInt(0, defaultResps.size()));
+    }
+
+    private List<String> getSensitiveWords() {
+        List<String> sensitiveWords = redisUtil.range(chatSensitiveWordKey(), 0, -1);
+        if (CollectionUtils.isEmpty(sensitiveWords)) {
+            prometheusUtil.perf(PERF_ERROR_MODULE, "get_chat_sensitive_keyword_empty");
+        }
+        return sensitiveWords;
     }
 }

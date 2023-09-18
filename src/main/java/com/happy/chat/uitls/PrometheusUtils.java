@@ -30,9 +30,9 @@ public class PrometheusUtils {
         return flirtopiaCounter;
     }
 
-    public void perf(String extra1) {
-        flirtopiaCounter.labels(extra1).inc();
-    }
+//    public void perf(String extra1) {
+//        flirtopiaCounter.labels(extra1).inc();
+//    }
 
     public void perf(String extra1, String extra2) {
         flirtopiaCounter.labels(extra1, extra2).inc();
