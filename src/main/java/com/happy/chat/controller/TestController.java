@@ -76,8 +76,6 @@ public class TestController {
         Map<String, Object> result = ApiResult.ofSuccess();
 
 
-        prometheusUtil.perf("testApi_recall");
-        prometheusUtil.perf("chatApi_recall");
 
         result.put("data", String.format("hello, %s", userName));
 
@@ -127,7 +125,7 @@ public class TestController {
 
 
         // 退场机制时间
-        redisUtil.set(userExitHappyModelExpireMillsKey(), "1800000");
+        redisUtil.set(userExitHappyModelExpireMillsKey(), "300000");
         result.put(userExitHappyModelExpireMillsKey(), redisUtil.get(userExitHappyModelExpireMillsKey()));
 
         // 聊天请求热情版gpt触发消息条数

@@ -25,4 +25,18 @@ public class Constant {
 
     public static final String CHAT_FROM_USER = "user";
     public static final String CHAT_FROM_ROBOT = "robot";
+
+    public static final String PERF_STARTUP_MODULE = "startup";
+    public static final String PERF_HTTP_MODULE = "okhttp";
+    public static final String PERF_USER_MODULE = "user";
+    public static final String PERF_ROBOT_MODULE = "robot";
+    public static final String PERF_PAYMENT_MODULE = "payment";
+    public static final String PERF_FEED_MODULE = "feed";
+    public static final String PERF_EMAIL_MODULE = "email";
+    public static final String PERF_CHAT_MODULE = "chat";
+
+    // 必须重点关注，比如写db失败等不符合预期的中断错误
+    public static final String PERF_ERROR_MODULE = "error";
+
+
 }

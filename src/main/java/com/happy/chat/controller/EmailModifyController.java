@@ -54,7 +54,7 @@ public class EmailModifyController {
     @LoginRequired
     @RequestMapping("/sendEmailCode")
     public Map<String, Object> send(@RequestParam("email") String email) {
-        // 验证邮箱 todo 确认subject和text
+        // 验证邮箱
         ErrorEnum errorEnum = emailHelper.sendCode(email, "Verify your email address",  false, "bind email");
         if (errorEnum == ErrorEnum.SUCCESS) {
             return ApiResult.ofSuccess();

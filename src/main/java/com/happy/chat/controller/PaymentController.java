@@ -1,6 +1,8 @@
 package com.happy.chat.controller;
 
 import static com.happy.chat.constants.Constant.DATA;
+import static com.happy.chat.constants.Constant.PERF_ERROR_MODULE;
+import static com.happy.chat.constants.Constant.PERF_PAYMENT_MODULE;
 
 import java.io.IOException;
 import java.util.Map;
@@ -63,6 +65,9 @@ public class PaymentController {
     @PostMapping("/create_payment_intent")
     public Map<String, Object> createPaymentIntent(@RequestParam("ud") String userId,
                                                    @RequestParam("robotId") String robotId) {
+
+        prometheusUtil.perf(PERF_PAYMENT_MODULE, "create_payment_intent_api_enter");
+
         Stripe.apiKey = privateKey;
         Map<String, Object> result = ApiResult.ofSuccess();
         try {
@@ -70,12 +75,14 @@ public class PaymentController {
             String priceId = robotService.getRobotStripePriceId(robotId);
             if (StringUtils.isEmpty(priceId)) {
                 log.warn("{} has no config price", robotId);
+                prometheusUtil.perf(PERF_PAYMENT_MODULE, "robot_lack_price_config_" + robotId);
                 priceId = defaultPriceId;
             }
             Price price = Price.retrieve(priceId);
             if (price == null) {
-                log.error("price {} null", priceId);
-                prometheusUtil.perf("stripe_price_retrieve_failed_" + priceId);
+                log.error("{} {} price {} null", userId, robotId, priceId);
+                prometheusUtil.perf(PERF_PAYMENT_MODULE, "stripe_retrieve_price_failed");
+                prometheusUtil.perf(PERF_ERROR_MODULE, "stripe_retrieve_price_failed");
                 return ApiResult.ofFail(ErrorEnum.STRIPE_PRICE_RETRIEVE_FAILED);
             }
             PaymentIntent paymentIntent = PaymentIntent.create(PaymentIntentCreateParams.builder()
@@ -86,7 +93,8 @@ public class PaymentController {
             int effect = paymentService.addPayRequest(userId, robotId, paymentIntent.getClientSecret());
             if (effect <= 0) {
                 log.error("addPayRequest failed {} {} {}", userId, robotId, ObjectMapperUtils.toJSON(paymentIntent));
-                prometheusUtil.perf("stripe_add_pay_request_failed_by_db_" + robotId);
+                prometheusUtil.perf(PERF_PAYMENT_MODULE, "insert_pay_request_db_failed");
+                prometheusUtil.perf(PERF_ERROR_MODULE, "insert_pay_request_db_failed");
                 return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
             }
             result.put(DATA, PaymentIntentView.builder()
@@ -95,72 +103,33 @@ public class PaymentController {
                     .currency(price.getCurrency())
                     .unitAmount(String.valueOf(price.getUnitAmount()))
                     .build());
+            prometheusUtil.perf(PERF_PAYMENT_MODULE, "create_payment_intent_success");
             return result;
         } catch (Exception e) {
             log.error("createPaymentIntent exception {} {}", userId, robotId, e);
-            prometheusUtil.perf("stripe_create_request_exception_" + robotId);
+            prometheusUtil.perf(PERF_PAYMENT_MODULE, "create_payment_intent_exception");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "create_payment_intent_exception");
             throw ServiceException.ofMessage(ErrorEnum.STRIPE_CREATE_SESSION_FAILED.getErrCode(), e.getMessage());
         }
     }
 
-//    // 调用Stripe来产生SessionId
-//    @RequestMapping("/create_checkout_session")
-//    @Deprecated
-//    public Map<String, Object> createCheckoutSession(@RequestBody CheckoutRequest request) {
-//        // 类似于price_1NhPYZBegHkiPVmEEH5lxC8Q
-//        Stripe.apiKey = privateKey;
-//        Map<String, Object> result = ApiResult.ofSuccess();
-//        try {
-//            SessionCreateParams params =
-//                    SessionCreateParams.builder()
-//                            .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
-//                            .setMode(SessionCreateParams.Mode.PAYMENT)
-//                            .setSuccessUrl(request.getSuccessUrl())
-//                            .setCancelUrl(request.getCancelUrl())
-//                            .setAutomaticTax(
-//                                    SessionCreateParams.AutomaticTax.builder()
-//                                            .setEnabled(true)
-//                                            .build())
-//                            .addLineItem(
-//                                    SessionCreateParams.LineItem.builder()
-//                                            .setQuantity(request.getQuantity())
-//                                            // Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-//                                            .setPrice(request.getPriceId())
-//                                            .build())
-//                            .build();
-//            Session session = Session.create(params);
-//            // insert request 失败了怎么弄？？？
-//            int effect = paymentService.addPayRequest(request, session);
-//            if (effect <= 0) {
-//                log.error("addPayRequest failed {}", ObjectMapperUtils.toJSON(request));
-//                prometheusUtil.perf("stripe_create_checkout_session_failed_by_db_" + request.getPriceId());
-//                return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
-//            }
-//            result.put(DATA, session.getId());
-//            return result;
-//        } catch (Exception e) {
-//            log.error("createCheckoutSession exception", e);
-//            prometheusUtil.perf("stripe_create_checkout_session_exception_" + request.getPriceId());
-//            throw ServiceException.ofMessage(ErrorEnum.STRIPE_CREATE_SESSION_FAILED.getErrCode(), e.getMessage());
-//        }
-//    }
-
-
     // 回调结果处理
     @RequestMapping("/event_callback")
     public void eventCallback(HttpServletRequest request, HttpServletResponse response) {
+        prometheusUtil.perf(PERF_PAYMENT_MODULE, "event_callback_api_enter");
+
         Stripe.apiKey = privateKey;
         String payload;
         try {
             payload = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
             if (StringUtils.isEmpty(payload)) {
                 log.error("event callback payload empty");
-                prometheusUtil.perf("stripe_event_callback_payload_empty");
+                prometheusUtil.perf(PERF_ERROR_MODULE, "callback_payload_empty");
                 return;
             }
         } catch (IOException e) {
             log.error("event callback process IOException", e);
-            prometheusUtil.perf("stripe_event_callback_ioException");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "callback_payload_ioException");
             return;
         }
 
@@ -171,12 +140,12 @@ public class PaymentController {
         } catch (JsonSyntaxException e) {
             // Invalid payload
             log.error("event callback payload invalid");
-            prometheusUtil.perf("stripe_event_callback_payload_invalid");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "callback_payload_invalid");
             return;
         } catch (SignatureVerificationException e) {
             // Invalid signature
             log.error("event callback sig invalid");
-            prometheusUtil.perf("stripe_event_callback_sig_invalid");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "callback_sig_invalid");
             return;
         }
 
@@ -186,11 +155,10 @@ public class PaymentController {
             stripeObject = dataObjectDeserializer.getObject().get();
         } else {
             log.error("event data deserializer failed {}", ObjectMapperUtils.toJSON(event));
-            prometheusUtil.perf("stripe_webhook_verify_failed");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "callback_webhook_verify_failed");
             return;
         }
 
-        // todo update payment state，chat go
         if ("payment_intent.succeeded".equals(event.getType())) {
             PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
             String sessionId = paymentIntent.getClientSecret();
@@ -199,10 +167,14 @@ public class PaymentController {
             boolean ok = paymentService.handleUserPaymentSuccess(sessionId);
             if (!ok) {
                 log.error("updatePayRequest failed {}", sessionId);
-                prometheusUtil.perf("stripe_webhook_failed");
+                prometheusUtil.perf(PERF_PAYMENT_MODULE, "event_callback_db_failed");
+                prometheusUtil.perf(PERF_ERROR_MODULE, "event_callback_db_failed");
+                return;
             }
         } else {
             log.warn("Unhandled event type: " + event.getType());
         }
+        prometheusUtil.perf(PERF_PAYMENT_MODULE, "event_callback_api_success");
+
     }
 }

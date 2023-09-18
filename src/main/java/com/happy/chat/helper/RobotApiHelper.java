@@ -1,6 +1,8 @@
 package com.happy.chat.helper;
 
 import static com.happy.chat.constants.Constant.DATA;
+import static com.happy.chat.constants.Constant.PERF_ERROR_MODULE;
+import static com.happy.chat.constants.Constant.PERF_ROBOT_MODULE;
 
 import java.util.Map;
 
@@ -37,10 +39,10 @@ public class RobotApiHelper {
         Robot robot = robotService.getRobotById(robotId);
         if (robot == null) {
             log.error("getRobotProfile failed, robotId={}", robotId);
-            prometheusUtil.perf("robot_get_failed_" + robotId);
+            prometheusUtil.perf(PERF_ROBOT_MODULE, "robot_get_failed_" + robotId);
+            prometheusUtil.perf(PERF_ERROR_MODULE, "robot_get_failed_" + robotId);
             return ApiResult.ofFail(ErrorEnum.ROBOT_NOT_EXIST);
         }
-        prometheusUtil.perf("robot_get_success");
         Map<String, Object> result = ApiResult.ofSuccess();
 
         RobotInfoView robotInfoView = RobotInfoView.convertRobot(robot);
@@ -48,6 +50,7 @@ public class RobotApiHelper {
             robotInfoView.setUserHasSubscribe(paymentService.userHasPayedRobot(userId, robotId));
         }
         result.put(DATA, robotInfoView);
+        prometheusUtil.perf(PERF_ROBOT_MODULE, "robot_profile_get_success");
         return result;
     }
 }

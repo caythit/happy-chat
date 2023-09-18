@@ -1,6 +1,7 @@
 package com.happy.chat.controller;
 
 import static com.happy.chat.constants.Constant.DATA;
+import static com.happy.chat.constants.Constant.PERF_STARTUP_MODULE;
 
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.happy.chat.helper.StartupApiHelper;
 import com.happy.chat.uitls.ApiResult;
+import com.happy.chat.uitls.PrometheusUtils;
 
 @RestController
 @RequestMapping("/rest/h/startup")
@@ -18,6 +20,9 @@ public class StartupController {
 
     @Autowired
     private StartupApiHelper startupApiHelper;
+
+    @Autowired
+    private PrometheusUtils prometheusUtil;
 
     /**
      * 兴趣选择
@@ -28,6 +33,7 @@ public class StartupController {
     public Map<String, Object> selectPrefer(@RequestParam(value = "ud") String dummyUid,
                                             @RequestParam(value = "robotPrefer", defaultValue = "") String preferRobotId,
                                             @RequestParam(value = "agePrefer", defaultValue = "") String agePrefer) {
+        prometheusUtil.perf(PERF_STARTUP_MODULE, "select_prefer_api_enter");
         return startupApiHelper.recordUserPrefer(dummyUid, preferRobotId, agePrefer);
     }
 
@@ -39,6 +45,7 @@ public class StartupController {
     @RequestMapping("/globalConfig")
     public Map<String, Object> globalConfig(@RequestParam(value = "ud", required = false) String dummyUid,
                                             @RequestParam(value = "appver", required = false) String appver) {
+        prometheusUtil.perf(PERF_STARTUP_MODULE, "global_config_api_enter");
         Map<String, Object> res = ApiResult.ofSuccess();
         // 返回相关配置
         res.put(DATA, startupApiHelper.getGlobalConfig(dummyUid, appver));
@@ -53,6 +60,7 @@ public class StartupController {
      */
     @RequestMapping("/config")
     public Map<String, Object> newUserConfig() {
+        prometheusUtil.perf(PERF_STARTUP_MODULE, "newuser_config_api_enter");
         Map<String, Object> res = ApiResult.ofSuccess();
         // 返回相关配置
         res.put(DATA, startupApiHelper.getConfig());

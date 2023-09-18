@@ -20,7 +20,9 @@ public class PrometheusUtils {
     // 在整个运行环境中，prometheusName必须只能出现一次，register时会报错
     @PostConstruct
     public void init() {
-        flirtopiaCounter = Counter.build("flirtopia", "flirtopia_help").labelNames("extra1").register(flirtopiaRegistry);
+        flirtopiaCounter = Counter.build("flirtopia", "flirtopia_help")
+                .labelNames("extra1", "extra2")
+                .register(flirtopiaRegistry);
     }
 
     @Bean
@@ -28,11 +30,11 @@ public class PrometheusUtils {
         return flirtopiaCounter;
     }
 
-    public void perf(Counter counter, String extra1) {
-        counter.labels(extra1).inc();
-    }
-
     public void perf(String extra1) {
         flirtopiaCounter.labels(extra1).inc();
+    }
+
+    public void perf(String extra1, String extra2) {
+        flirtopiaCounter.labels(extra1, extra2).inc();
     }
 }

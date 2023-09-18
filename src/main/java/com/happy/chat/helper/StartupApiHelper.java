@@ -1,5 +1,7 @@
 package com.happy.chat.helper;
 
+import static com.happy.chat.constants.Constant.PERF_ERROR_MODULE;
+import static com.happy.chat.constants.Constant.PERF_STARTUP_MODULE;
 import static com.happy.chat.constants.Constant.USER_ID_PREFIX;
 import static com.happy.chat.uitls.CacheKeyProvider.startupConfigKey;
 
@@ -54,7 +56,7 @@ public class StartupApiHelper {
         StartupConfigView startupConfigView = new StartupConfigView();
         if (model == null) {
             log.error("getConfig failed, use mock view");
-            prometheusUtil.perf("mock_config");
+            prometheusUtil.perf(PERF_STARTUP_MODULE, "config_use_mock_view");
             model = mockModel();
         }
         startupConfigView.setAgeOptions(model.getAgeOptions());
@@ -65,15 +67,17 @@ public class StartupApiHelper {
                 .map(r -> new RobotStartupView(r.getRobotId(), r.getHeadUrl(), r.getName()))
                 .collect(Collectors.toList()));
 
-
         // 生成dummy user
         String dummyUserId = CommonUtils.uuid(USER_ID_PREFIX);
         int effectRow = userService.addDummyUser(dummyUserId);
         if (effectRow <= 0) {
             log.error("insert db dummy user failed {}", dummyUserId);
-            prometheusUtil.perf("add_dummy_user_failed");
+            prometheusUtil.perf(PERF_STARTUP_MODULE, "config_add_dummy_db_failed");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "config_add_dummy_db_failed");
+        } else {
+            startupConfigView.setDummyUid(dummyUserId);
+            prometheusUtil.perf(PERF_STARTUP_MODULE, "newuser_config_success");
         }
-        startupConfigView.setDummyUid(dummyUserId);
         return startupConfigView;
     }
 
@@ -97,19 +101,18 @@ public class StartupApiHelper {
 
     public Map<String, Object> recordUserPrefer(String userId, String preferRobotId, String agePrefer) {
         if (StringUtils.isEmpty(preferRobotId) && StringUtils.isEmpty(agePrefer)) {
-            log.warn("preferRobotId and agePrefer empty");
+            prometheusUtil.perf(PERF_STARTUP_MODULE, "skip_select_prefer");
             return ApiResult.ofSuccess();
         }
         String preferInfo = String.format("%s:%s", preferRobotId, agePrefer);
         int effectRow = userService.updateUserPreferInfo(userId, preferInfo);
         if (effectRow <= 0) {
-            // 打点
             log.error("recordUserPrefer failed {} {} {}", userId, preferRobotId, agePrefer);
-            prometheusUtil.perf("user_prefer_info_failed");
+            prometheusUtil.perf(PERF_STARTUP_MODULE, "record_prefer_db_failed");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "record_prefer_db_failed");
             return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
         }
-        // 打点
-        prometheusUtil.perf("user_prefer_info_success");
+        prometheusUtil.perf(PERF_STARTUP_MODULE, "record_prefer_success");
         return ApiResult.ofSuccess();
     }
 
@@ -118,6 +121,7 @@ public class StartupApiHelper {
 
         GlobalConfigView.UpdateDialog updateDialog = new GlobalConfigView.UpdateDialog();
         view.setUpdateDialog(updateDialog);
+        prometheusUtil.perf(PERF_STARTUP_MODULE, "global_config_success");
         return view;
     }
 }
