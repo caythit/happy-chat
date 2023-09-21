@@ -53,5 +53,5 @@ com:
       app-pwd: pwtaixikpzkbntrj
       from: flirtopiaservice@gmail.com
 stripe:
-  apiKey: sk_test_51NPOMIBegHkiPVmEtyhXq3hPFQrXrx9oTVeobQ07bG7PKCloN8uAk4YVq9kPBbb46SgeMocpKSD9TQwuhGcJv1St000ngXvqSb
-  webhookSecret: whsec_tMGmi5ui6dpSwO6oNaSoqNIUxaMP7xu8
+  apiKey: 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
+  webhookSecret: whsec_Qcu5aOukJ42lDzUfGe7AE4snFLGycmYO
