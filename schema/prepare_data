@@ -16,39 +16,53 @@ insert into robot_info (robot_id,head_url,cover_url, name,sex,age,city,country,e
 insert into robot_info (robot_id,head_url,cover_url, name,sex,age,city,country,extra_info,create_time,update_time) values('rb_test12', 'https://i.ibb.co/2YN45Bz/1.png', 'https://i.ibb.co/L8vX84Y/2.png', 'Isabella Rodriguez', 2, 35, 'Miami', 'Latin American', '{"work":"elementary school teacher","aboutMe":"A sinlge mom of a 6 years old boy","interest":"taking photos,  yoga, jogging"}', 1692277415000, 1692277415000);
 
     AI 破冰文案
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test1', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test1', 'already miss you', 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test1', 'Are u busy now?', 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test1', "Do you have a name or can I call you 'mine'?", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test1', "How's ur day going", 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test2', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test2', 'already miss you', 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test2', 'You must be dancing now!', 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test2', "If you were a vegetable, you'd be a cute-cumber!", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test2', "How's ur day going", 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test3', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test3', 'already miss you', 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test3', "How is ur college life?", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test3', "Can you lend me a kiss? I promise I'll give it back?", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test3', "How's ur day going", 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test4', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test4', 'already miss you', 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test4', "Where are you going to spend your time tonight?", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test4', "Do you have a sunburn, or are you always this hot", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test4', "How's ur day going", 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test5', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test5', 'already miss you', 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test5', "How is the feeling of being rich?", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test5', "Is your personality as attractive as your photos?", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test5', "How's ur day going", 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test6', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test6', 'already miss you', 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test6', "Did you go to church today?", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test6', "Is your dad a baker? Because you're a cutie pie.", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test6', "How's ur day going", 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test7', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test7', 'already miss you', 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test7', "What problem are u solving now?", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test7', "Are you made of copper and tellurium? Because you're Cu-Te.", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test7', "How's ur day going", 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test8', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test8', 'already miss you', 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test8', "What a busy day!", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test8', "Is your profile a restaurant menu? Because everything on it looks delicious.", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test8', "How's ur day going", 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test9', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test9', 'already miss you', 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test9', "Houseworking isn't easy, right?", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test9', "Do you believe in love at first click?", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test9', "How's ur day going", 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test10', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test10', 'already miss you', 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test10', "I'm a follower of yours!", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test10', "I'm no photographer, but I can see us making memories", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test10', "How's ur day going", 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test11', 'let me guess what are you doing', 1692277415000, 1692277415000);
-insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test11', 'already miss you', 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test11', "I'm glad to inform you that there are no more patients here.", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test11', "Talking to you is the best medicine.", 1692277415000, 1692277415000);
 insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test11', "How's ur day going", 1692277415000, 1692277415000);
+
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test12', "let me guess what are you doing", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test12', "What's your idea of a perfect date?", 1692277415000, 1692277415000);
+insert into robot_ice_break_word(robot_id, content,create_time,update_time) values('rb_test12', "How's ur day going", 1692277415000, 1692277415000);
 
 2、提前写入redis：
     通过/insertPrepareData接口写入的数据，包括以下这些：
