@@ -431,6 +431,8 @@ public class ChatServiceImpl implements ChatService {
                 .historyMaxLen(1000)
                 .topP(0.85)
                 .userId(robotId)
+                .presencePenalty(0.5)
+                .frequencyPenalty(0.5)
                 .current(HappyModelRequest.Current.builder()
                         .u(currentUserInput)
                         .build())

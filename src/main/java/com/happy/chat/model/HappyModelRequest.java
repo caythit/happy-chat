@@ -23,6 +23,11 @@ public class HappyModelRequest {
     @JsonProperty("user_id")
     private String userId;
 
+    @JsonProperty("presence_penalty")
+    private Double presencePenalty;
+    @JsonProperty("frequency_penalty")
+    private Double frequencyPenalty;
+
     @Data
     @Builder
     public static class Current {
