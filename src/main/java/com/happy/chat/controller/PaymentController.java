@@ -25,8 +25,11 @@ import com.happy.chat.exception.ServiceException;
 import com.happy.chat.service.PaymentService;
 import com.happy.chat.service.RobotService;
 import com.happy.chat.uitls.ApiResult;
+import com.happy.chat.uitls.CacheKeyProvider;
+import com.happy.chat.uitls.CommonUtils;
 import com.happy.chat.uitls.ObjectMapperUtils;
 import com.happy.chat.uitls.PrometheusUtils;
+import com.happy.chat.uitls.RedisUtil;
 import com.happy.chat.view.PaymentIntentView;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
@@ -56,10 +59,13 @@ public class PaymentController {
     private RobotService robotService;
 
     @Value("${stripe.apiKey}")
-    private String privateKey;
+    private String encryptPrivateKey;
 
     @Value("${stripe.webhookSecret}")
-    private String endpointSecret;
+    private String encryptEndpointSecret;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     // 调用Stripe来产生SessionId
     @PostMapping("/create_payment_intent")
@@ -68,7 +74,8 @@ public class PaymentController {
 
         prometheusUtil.perf(PERF_PAYMENT_MODULE, "create_payment_intent_api_enter");
 
-        Stripe.apiKey = privateKey;
+        String salt = redisUtil.get(CacheKeyProvider.stripeApiKeySalt());
+        Stripe.apiKey = CommonUtils.decryptPwd(salt, encryptPrivateKey);
         Map<String, Object> result = ApiResult.ofSuccess();
         try {
             // 根据robot拿到它的priceId
@@ -118,7 +125,9 @@ public class PaymentController {
     public void eventCallback(HttpServletRequest request, HttpServletResponse response) {
         prometheusUtil.perf(PERF_PAYMENT_MODULE, "event_callback_api_enter");
 
-        Stripe.apiKey = privateKey;
+        String apiKeySalt = redisUtil.get(CacheKeyProvider.stripeApiKeySalt());
+        Stripe.apiKey = CommonUtils.decryptPwd(apiKeySalt, encryptPrivateKey);
+
         String payload;
         try {
             payload = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
@@ -136,6 +145,8 @@ public class PaymentController {
         String sigHeader = request.getHeader("Stripe-Signature");
         Event event;
         try {
+            String webhookSalt = redisUtil.get(CacheKeyProvider.stripeWebhookSecretSalt());
+            String endpointSecret = CommonUtils.decryptPwd(webhookSalt, encryptEndpointSecret);
             event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
         } catch (JsonSyntaxException e) {
             // Invalid payload

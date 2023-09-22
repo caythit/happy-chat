@@ -104,6 +104,14 @@ public class CacheKeyProvider {
         return PREFIX.concat("happyModelHttpUrl");
     }
 
+    public static String stripeApiKeySalt() {
+        return PREFIX.concat("stripeApiKeySalt");
+    }
+
+    public static String stripeWebhookSecretSalt() {
+        return PREFIX.concat("stripeWebhookSecretSalt");
+    }
+
     public static void main(String[] args) {
         String fileName = String.format("prompt/%s_%s.prompt", "rb_test11", "normal");
         String prompt = FileUtils.getFileContent(fileName);

@@ -101,6 +101,8 @@ insert into robot_ice_break_word(robot_id, content,create_time,update_time) valu
         set flirtopia:robotStripePriceId:rb_test11 "xxx"
         set flirtopia:robotStripePriceId:rb_test12 "xxx"
 
+        set flirtopia:stripeApiKeySalt "xxx"
+        set flirtopia:stripeWebhookSecretSalt "xxx"
 
 
 二、程序执行时会写的缓存：
