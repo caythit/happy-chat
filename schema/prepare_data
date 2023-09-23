@@ -85,7 +85,7 @@ insert into robot_ice_break_word(robot_id, content,create_time,update_time) valu
         每个机器人对应的stripe priceId配置。set robotStripePriceId:xxx "xxx"
 
     手动执行命令：
-        lpush flirtopia:gptApiTokenKey "xxxx"
+        lpush flirtopia:gptApiToken "xxxx"
         set flirtopia:happyModelHttpUrl "xxx"
 
         set flirtopia:robotStripePriceId:rb_test1 "xxx"

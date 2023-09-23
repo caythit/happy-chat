@@ -1,7 +1,7 @@
 package com.happy.chat.controller;
 
 import static com.happy.chat.constants.Constant.COOKIE_SESSION_ID;
-import static com.happy.chat.constants.Constant.PERF_STARTUP_MODULE;
+import static com.happy.chat.constants.Constant.PERF_FEED_MODULE;
 
 import java.util.Map;
 
@@ -37,7 +37,7 @@ public class FeedController {
                                       @RequestParam(value = "ud") String dummyUid,
                                       @RequestParam(value = "size", required = false, defaultValue = "100") int size) {
         log.info("foryou {} {}", dummyUid, userId);
-        prometheusUtil.perf(PERF_STARTUP_MODULE, "foryou_api_enter");
+        prometheusUtil.perf(PERF_FEED_MODULE, "foryou_api_enter");
         return feedApiHelper.foryou(userId, dummyUid, size);
     }
 }
