@@ -26,6 +26,7 @@ public class Constant {
     public static final String CHAT_FROM_USER = "user";
     public static final String CHAT_FROM_ROBOT = "robot";
 
+    public static final String PERF_TEST_MODULE = "test";
     public static final String PERF_STARTUP_MODULE = "startup";
 //    public static final String PERF_HTTP_MODULE = "okhttp";
     public static final String PERF_USER_MODULE = "user";

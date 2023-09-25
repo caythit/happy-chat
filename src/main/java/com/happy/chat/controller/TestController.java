@@ -1,6 +1,7 @@
 package com.happy.chat.controller;
 
 import static com.happy.chat.constants.Constant.CHAT_FROM_USER;
+import static com.happy.chat.constants.Constant.PERF_TEST_MODULE;
 import static com.happy.chat.uitls.CacheKeyProvider.chatFinishPayTipsKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSensitiveWordKey;
 import static com.happy.chat.uitls.CacheKeyProvider.chatSystemTipsKey;
@@ -80,9 +81,7 @@ public class TestController {
 
         result.put("data", String.format("hello, %s", userName));
 
-        log.info("test log...");
-        log.warn("test log...");
-        log.error("test log...");
+        prometheusUtil.perf(PERF_TEST_MODULE, "test API入口");
         return result;
     }
 

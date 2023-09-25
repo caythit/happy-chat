@@ -78,9 +78,9 @@ public class FeedApiHelper {
 
         if (CollectionUtils.isEmpty(robotInfoViewList)) {
             log.error("feed robot get failed, userId={}, dummyUd={}", userId, dummyUid);
-            prometheusUtil.perf(PERF_ERROR_MODULE ,"feed_render_failed_by_robot_empty");
+            prometheusUtil.perf(PERF_ERROR_MODULE ,"feed渲染失败-无robot信息");
         } else {
-            prometheusUtil.perf(PERF_FEED_MODULE ,"feed_render_success");
+            prometheusUtil.perf(PERF_FEED_MODULE ,"feed渲染成功");
         }
         result.put(DATA, feedView);
         return result;

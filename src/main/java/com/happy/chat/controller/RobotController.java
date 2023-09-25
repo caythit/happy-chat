@@ -34,7 +34,7 @@ public class RobotController {
     public Map<String, Object> profile(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                        @RequestParam("robotId") String robotId) {
 
-        prometheusUtil.perf(PERF_ROBOT_MODULE, "profile_api_enter");
+        prometheusUtil.perf(PERF_ROBOT_MODULE, "robot profile API入口");
 
         return robotApiHelper.getRobotProfile(userId, robotId);
     }

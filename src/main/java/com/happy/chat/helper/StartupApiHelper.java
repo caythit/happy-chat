@@ -56,7 +56,7 @@ public class StartupApiHelper {
         StartupConfigView startupConfigView = new StartupConfigView();
         if (model == null) {
             log.error("getConfig failed, use mock view");
-            prometheusUtil.perf(PERF_STARTUP_MODULE, "config_use_mock_view");
+            prometheusUtil.perf(PERF_STARTUP_MODULE, "新用户redis未配置，使用mock数据");
             model = mockModel();
         }
         startupConfigView.setAgeOptions(model.getAgeOptions());
@@ -72,11 +72,11 @@ public class StartupApiHelper {
         int effectRow = userService.addDummyUser(dummyUserId);
         if (effectRow <= 0) {
             log.error("insert db dummy user failed {}", dummyUserId);
-            prometheusUtil.perf(PERF_STARTUP_MODULE, "config_add_dummy_db_failed");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "config_add_dummy_db_failed");
+            prometheusUtil.perf(PERF_STARTUP_MODULE, "新用户配置写DB失败(Error)");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "新用户配置写DB失败");
         } else {
             startupConfigView.setDummyUid(dummyUserId);
-            prometheusUtil.perf(PERF_STARTUP_MODULE, "newuser_config_success");
+            prometheusUtil.perf(PERF_STARTUP_MODULE, "新用户配置下发成功");
         }
         return startupConfigView;
     }
@@ -101,18 +101,18 @@ public class StartupApiHelper {
 
     public Map<String, Object> recordUserPrefer(String userId, String preferRobotId, String agePrefer) {
         if (StringUtils.isEmpty(preferRobotId) && StringUtils.isEmpty(agePrefer)) {
-            prometheusUtil.perf(PERF_STARTUP_MODULE, "skip_select_prefer");
+            prometheusUtil.perf(PERF_STARTUP_MODULE, "用户跳过兴趣选择");
             return ApiResult.ofSuccess();
         }
         String preferInfo = String.format("%s:%s", preferRobotId, agePrefer);
         int effectRow = userService.updateUserPreferInfo(userId, preferInfo);
         if (effectRow <= 0) {
             log.error("recordUserPrefer failed {} {} {}", userId, preferRobotId, agePrefer);
-            prometheusUtil.perf(PERF_STARTUP_MODULE, "record_prefer_db_failed");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "record_prefer_db_failed");
+            prometheusUtil.perf(PERF_STARTUP_MODULE, "用户兴趣选择写DB失败(Error)");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "用户兴趣选择写DB失败");
             return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
         }
-        prometheusUtil.perf(PERF_STARTUP_MODULE, "record_prefer_success");
+        prometheusUtil.perf(PERF_STARTUP_MODULE, "用户兴趣选择处理成功");
         return ApiResult.ofSuccess();
     }
 
@@ -121,7 +121,7 @@ public class StartupApiHelper {
 
         GlobalConfigView.UpdateDialog updateDialog = new GlobalConfigView.UpdateDialog();
         view.setUpdateDialog(updateDialog);
-        prometheusUtil.perf(PERF_STARTUP_MODULE, "global_config_success");
+        prometheusUtil.perf(PERF_STARTUP_MODULE, "全局配置下发成功");
         return view;
     }
 }

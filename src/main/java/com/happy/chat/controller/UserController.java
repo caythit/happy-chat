@@ -41,7 +41,7 @@ public class UserController {
     public Map<String, Object> loginByEmail(HttpServletResponse response,
                                             @RequestParam("email") String email,
                                             @RequestParam("password") String password) {
-        prometheusUtil.perf(PERF_USER_MODULE, "login_by_email_api_enter");
+        prometheusUtil.perf(PERF_USER_MODULE, "邮箱登录API入口");
 
         Map<String, Object> res = useHelper.doLoginByEmail(email, password);
         // 成功设置cookie
@@ -63,7 +63,7 @@ public class UserController {
                                                @RequestParam(value = "ud") String dummyUid,
                                                @RequestParam("email") String email,
                                                @RequestParam("password") String password) {
-        prometheusUtil.perf(PERF_USER_MODULE, "register_by_email_api_enter");
+        prometheusUtil.perf(PERF_USER_MODULE, "邮箱注册API入口");
 
         Map<String, Object> res = useHelper.doRegisterByEmail(dummyUid, email, password);
         // 成功设置cookie
@@ -83,7 +83,7 @@ public class UserController {
     @RequestMapping("/modifyUserName")
     public Map<String, Object> modifyUserName(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                               @RequestParam("userName") String userName) {
-        prometheusUtil.perf(PERF_USER_MODULE, "modify_user_name_api_enter");
+        prometheusUtil.perf(PERF_USER_MODULE, "修改用户名API入口");
         log.info("modifyUserName, userId={}, userName={}", userId, userName);
         return useHelper.modifyUserName(userId, userName);
     }
@@ -93,7 +93,7 @@ public class UserController {
     public Map<String, Object> logout(HttpServletResponse response,
                                       @CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                       @RequestParam(value = "ud") String dummyUid) {
-        prometheusUtil.perf(PERF_USER_MODULE, "logout_api_enter");
+        prometheusUtil.perf(PERF_USER_MODULE, "登出API入口");
 
         log.info("logout, userId={}, dummyUserId={}", userId, dummyUid);
         // 将Cookie的值设置为null
@@ -106,7 +106,7 @@ public class UserController {
 
     @RequestMapping("/profile")
     public Map<String, Object> profile(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId) {
-        prometheusUtil.perf(PERF_USER_MODULE, "profile_api_enter");
+        prometheusUtil.perf(PERF_USER_MODULE, "用户profile页API入口");
         return useHelper.getUserInfo(userId);
     }
 
@@ -116,7 +116,7 @@ public class UserController {
                                               @RequestParam(value = "ud") String dummyUid,
                                               @RequestParam("oldPwd") String oldPwd,
                                               @RequestParam("newPwd") String newPwd) {
-        prometheusUtil.perf(PERF_USER_MODULE, "modify_password_api_enter");
+        prometheusUtil.perf(PERF_USER_MODULE, "用户修改密码API入口");
 
         if (StringUtils.isNotEmpty(userId) && !StringUtils.equals(userId, dummyUid)) { // 登录了 需要和ud做比较
             return ApiResult.ofFail(ErrorEnum.UD_NOT_MATCHED);

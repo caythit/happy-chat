@@ -59,7 +59,7 @@ public class EmailHelper {
         boolean emailValid = CommonUtils.emailPatternValid(email);
         if (!emailValid) {
             log.error("sendEmail, emailInValid {} {} ", email, purpose);
-            prometheusUtil.perf(PERF_EMAIL_MODULE, "send_failed_by_email_pattern_invalid_" + purpose);
+            prometheusUtil.perf(PERF_EMAIL_MODULE, "发送邮箱验证码失败-邮箱无效,目的：" + purpose);
             return ErrorEnum.EMAIL_PATTERN_INVALID;
         }
 
@@ -70,7 +70,7 @@ public class EmailHelper {
                     .build());
             if (user == null) {
                 log.error("sendEmail, checkEmailBind user null {} {}", email, purpose);
-                prometheusUtil.perf(PERF_EMAIL_MODULE, "send_failed_by_user_not_exists_" + purpose);
+                prometheusUtil.perf(PERF_EMAIL_MODULE, "发送邮箱验证码失败-用戶不存在,目的：" + purpose);
                 return ErrorEnum.EMAIL_NOT_EXIST;
             }
         }
@@ -82,12 +82,11 @@ public class EmailHelper {
             // 5分钟有效
             redisUtil.set(CacheKeyProvider.mailCodeKey(email), code, 5, TimeUnit.MINUTES);
             sendByTSL(mailUser, mailAppPwd, mailFrom, email, subject, content);
-            prometheusUtil.perf(PERF_EMAIL_MODULE, "send_success_" + purpose);
+            prometheusUtil.perf(PERF_EMAIL_MODULE, "发送邮箱验证码成功,目的：" + purpose);
             return ErrorEnum.SUCCESS;
         } catch (Exception e) {
             log.error("sendEmail, exception {}", email, e);
-            prometheusUtil.perf(PERF_EMAIL_MODULE, "send_failed_by_exception_" + purpose);
-            prometheusUtil.perf(PERF_ERROR_MODULE, "send_failed_by_exception_" + purpose);
+            prometheusUtil.perf(PERF_ERROR_MODULE, "发送邮箱验证码异常,目的：" + purpose);
             return ErrorEnum.EMAIL_SEND_CODE_FAIL;
         }
     }
@@ -96,15 +95,15 @@ public class EmailHelper {
         String code = redisUtil.get(CacheKeyProvider.mailCodeKey(email));
         if (StringUtils.isEmpty(code)) {
             log.error("verifyEmailCodeFailed, {} code {} expire", email, code);
-            prometheusUtil.perf(PERF_EMAIL_MODULE, "verify_failed_by_expire_" + purpose);
+            prometheusUtil.perf(PERF_EMAIL_MODULE, "校验邮箱验证码失败-验证码过期,目的：" + purpose);
             return ErrorEnum.EMAIL_VERIFY_CODE_EXPIRE;
         }
         if (!emailVerifyCode.equals(code)) {
             log.error("verifyEmailCodeFailed, {} {} code not matched", emailVerifyCode, code);
-            prometheusUtil.perf(PERF_EMAIL_MODULE, "verify_failed_by_code_mismatch_" + purpose);
+            prometheusUtil.perf(PERF_EMAIL_MODULE, "校验邮箱验证码失败-验证码错误,目的：" + purpose);
             return ErrorEnum.EMAIL_VERIFY_CODE_ERROR;
         }
-        prometheusUtil.perf(PERF_EMAIL_MODULE, "verify_success_" + purpose);
+        prometheusUtil.perf(PERF_EMAIL_MODULE, "校验邮箱验证码成功,目的：" + purpose);
         return ErrorEnum.SUCCESS;
 
     }

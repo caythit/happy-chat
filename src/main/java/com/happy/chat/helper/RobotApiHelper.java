@@ -39,8 +39,7 @@ public class RobotApiHelper {
         Robot robot = robotService.getRobotById(robotId);
         if (robot == null) {
             log.error("getRobotProfile failed, robotId={}", robotId);
-            prometheusUtil.perf(PERF_ROBOT_MODULE, "robot_get_failed_" + robotId);
-            prometheusUtil.perf(PERF_ERROR_MODULE, "robot_get_failed_" + robotId);
+            prometheusUtil.perf(PERF_ERROR_MODULE, "robot信息获取失败, robotId: " + robotId);
             return ApiResult.ofFail(ErrorEnum.ROBOT_NOT_EXIST);
         }
         Map<String, Object> result = ApiResult.ofSuccess();
@@ -50,7 +49,7 @@ public class RobotApiHelper {
             robotInfoView.setUserHasSubscribe(paymentService.userHasPayedRobot(userId, robotId));
         }
         result.put(DATA, robotInfoView);
-        prometheusUtil.perf(PERF_ROBOT_MODULE, "robot_profile_get_success");
+        prometheusUtil.perf(PERF_ROBOT_MODULE, "robot信息获取成功");
         return result;
     }
 }

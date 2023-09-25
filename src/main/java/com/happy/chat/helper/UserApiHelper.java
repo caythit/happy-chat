@@ -47,7 +47,7 @@ public class UserApiHelper {
         // 没有拿到
         if (user == null) {
             log.error("doLoginByEmail user null {}", email);
-            prometheusUtil.perf(PERF_USER_MODULE, "login_failed_by_not_exist");
+            prometheusUtil.perf(PERF_USER_MODULE, "登陆失败-输入邮箱不存在");
             return ApiResult.ofFail(ErrorEnum.USER_NOT_EXIST);
         }
 
@@ -55,10 +55,10 @@ public class UserApiHelper {
         String decodePwd = CommonUtils.decryptPwd(user.getPwdSalt(), user.getUserPwd());
         if (!StringUtils.equals(password, decodePwd)) {
             log.error("doLoginByEmail password not correct {} {}", email, password);
-            prometheusUtil.perf(PERF_USER_MODULE, "login_failed_by_pwd_error");
+            prometheusUtil.perf(PERF_USER_MODULE, "登陆失败-密码错误");
             return ApiResult.ofFail(ErrorEnum.PASSWORD_ERROR);
         }
-        prometheusUtil.perf(PERF_USER_MODULE, "login_success");
+        prometheusUtil.perf(PERF_USER_MODULE, "登陆成功");
         UserInfoView userView = UserInfoView.convert(user);
         result.put(DATA, userView);
         return result;
@@ -69,14 +69,14 @@ public class UserApiHelper {
 
         ErrorEnum registerErr = registerVerify(email, password);
         if (registerErr != ErrorEnum.SUCCESS) {
-            prometheusUtil.perf(PERF_USER_MODULE, "reg_verify_failed_by_" + registerErr.getErrCode());
+            prometheusUtil.perf(PERF_USER_MODULE, "注册失败,错误码：" + registerErr.getErrCode());
             log.error("doRegisterByEmail verify failed {} {}", email, password);
             return ApiResult.ofFail(registerErr);
         }
         User dummyUser = userService.getDummyUser(dummyUserId);
         if (dummyUser == null) {
-            prometheusUtil.perf(PERF_USER_MODULE, "reg_failed_by_dummy_user_empty");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "reg_failed_by_dummy_user_empty");
+            prometheusUtil.perf(PERF_USER_MODULE, "注册失败-未找到dummy user信息(Error)");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "注册失败-未找到dummy user信息");
             log.error("doRegisterByEmail failed by dummy user not exists {} {}", email, password);
             return ApiResult.ofFail(ErrorEnum.REG_FAILED_BY_DUMMY_NOT_EXIST);
         }
@@ -95,11 +95,11 @@ public class UserApiHelper {
         int effectRow = userService.addUser(user);
         if (effectRow <= 0) {
             log.error("doRegisterByEmail verify failed {} {}", email, dummyUserId);
-            prometheusUtil.perf(PERF_USER_MODULE, "reg_failed_by_db_error");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "reg_failed_by_db_error");
+            prometheusUtil.perf(PERF_USER_MODULE, "注册失败-写DB错误(Error)");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "注册失败-写DB错误");
             return ApiResult.ofFail(SERVER_ERROR);
         }
-        prometheusUtil.perf(PERF_USER_MODULE, "reg_success");
+        prometheusUtil.perf(PERF_USER_MODULE, "注册成功");
         UserInfoView userView = UserInfoView.convert(user);
         result.put(DATA, userView);
         return result;
@@ -137,16 +137,16 @@ public class UserApiHelper {
                 .build());
         if (user == null) {
             log.error("{} checkPassword failed by user null {}", purpose, userId);
-            prometheusUtil.perf(PERF_USER_MODULE, "check_pwd_failed_by_user_not_exist_" + purpose);
+            prometheusUtil.perf(PERF_USER_MODULE, "密码校验失败-用户不存在,目的: " + purpose);
             return ErrorEnum.USER_NOT_EXIST;
         }
         String decryptPwd = CommonUtils.decryptPwd(user.getPwdSalt(), user.getUserPwd());
         if (!decryptPwd.equals(password)) {
             log.error("{} checkPassword failed password incorrect {}", purpose, userId);
-            prometheusUtil.perf(PERF_USER_MODULE, "check_pwd_failed_by_pwd_err_" + purpose);
+            prometheusUtil.perf(PERF_USER_MODULE, "密码校验失败-密码错误,目的: " + purpose);
             return ErrorEnum.PASSWORD_ERROR;
         }
-        prometheusUtil.perf(PERF_USER_MODULE, "check_pwd_success_" + purpose);
+        prometheusUtil.perf(PERF_USER_MODULE, "密码校验成功,目的: " + purpose);
         return ErrorEnum.SUCCESS;
     }
 
@@ -155,7 +155,7 @@ public class UserApiHelper {
         // 检查新密码的格式符合要求
         if (!CommonUtils.passwordPatternValid(pwd)) {
             log.error("modifyPassword failed by pattern invalid {}", userId);
-            prometheusUtil.perf(PERF_USER_MODULE, "modify_pwd_failed_by_pattern_invalid");
+            prometheusUtil.perf(PERF_USER_MODULE, "修改密码失败-密码格式不符合要求");
             return ApiResult.ofFail(ErrorEnum.PASSWORD_PATTERN_INVALID);
         }
         User user = userService.getUser(UserGetRequest.builder()
@@ -163,7 +163,7 @@ public class UserApiHelper {
                 .build());
         if (user == null) {
             log.error("modifyPassword failed by user null {}", userId);
-            prometheusUtil.perf(PERF_USER_MODULE, "modify_pwd_failed_by_user_not_exist");
+            prometheusUtil.perf(PERF_USER_MODULE, "修改密码失败-用户不存在");
             return ApiResult.ofFail(ErrorEnum.USER_NOT_EXIST);
         }
 
@@ -171,11 +171,11 @@ public class UserApiHelper {
         int effectRow = userService.modifyUserPwd(userId, encryptPwd);
         if (effectRow <= 0) {
             log.error("modifyPassword failed by insert db {}", userId);
-            prometheusUtil.perf(PERF_USER_MODULE, "modify_pwd_failed_by_db_error");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "modify_pwd_failed_by_db_error");
+            prometheusUtil.perf(PERF_USER_MODULE, "修改密码失败-写DB错误(Error)");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "修改密码失败-写DB错误");
             return ApiResult.ofFail(ErrorEnum.RESET_PASSWORD_FAIL);
         }
-        prometheusUtil.perf(PERF_ERROR_MODULE, "modify_pwd_success");
+        prometheusUtil.perf(PERF_USER_MODULE, "修改密码成功");
         return ApiResult.ofSuccess();
     }
 
@@ -183,11 +183,11 @@ public class UserApiHelper {
         int effectRow = userService.modifyUserName(userId, userName);
         if (effectRow <= 0) {
             log.error("modifyUserName insert db failed {}", userName);
-            prometheusUtil.perf(PERF_USER_MODULE, "modify_name_failed_by_db_error");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "modify_name_failed_by_db_error");
+            prometheusUtil.perf(PERF_USER_MODULE, "修改用户名失败-写DB错误(Error)");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "修改用户名失败-写DB错误");
             return ApiResult.ofFail(ErrorEnum.REBIND_EMAIL_FAIL);
         }
-        prometheusUtil.perf(PERF_USER_MODULE, "modify_name_success");
+        prometheusUtil.perf(PERF_USER_MODULE, "修改用户名成功");
         return ApiResult.ofSuccess();
 
     }
@@ -202,12 +202,12 @@ public class UserApiHelper {
         // 没有拿到
         if (user == null) {
             log.error("getUserInfo null {}", userId);
-            prometheusUtil.perf(PERF_USER_MODULE, "get_user_failed_by_not_exists");
+            prometheusUtil.perf(PERF_USER_MODULE, "profile未读取到用户信息");
             return ApiResult.ofFail(ErrorEnum.USER_NOT_EXIST);
         }
         UserInfoView userView = UserInfoView.convert(user);
         result.put(DATA, userView);
-        prometheusUtil.perf(PERF_USER_MODULE, "get_user_success");
+        prometheusUtil.perf(PERF_USER_MODULE, "profile获取成功");
         return result;
     }
 }

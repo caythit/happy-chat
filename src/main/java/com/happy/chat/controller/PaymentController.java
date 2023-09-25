@@ -72,7 +72,7 @@ public class PaymentController {
     public Map<String, Object> createPaymentIntent(@RequestParam("ud") String userId,
                                                    @RequestParam("robotId") String robotId) {
 
-        prometheusUtil.perf(PERF_PAYMENT_MODULE, "create_payment_intent_api_enter");
+        prometheusUtil.perf(PERF_PAYMENT_MODULE, "创建付款单API入口");
 
         String salt = redisUtil.get(CacheKeyProvider.stripeApiKeySalt());
         Stripe.apiKey = CommonUtils.decryptPwd(salt, encryptPrivateKey);
@@ -82,14 +82,13 @@ public class PaymentController {
             String priceId = robotService.getRobotStripePriceId(robotId);
             if (StringUtils.isEmpty(priceId)) {
                 log.warn("{} has no config price", robotId);
-                prometheusUtil.perf(PERF_PAYMENT_MODULE, "robot_lack_price_config_" + robotId);
+                prometheusUtil.perf(PERF_PAYMENT_MODULE, "未找到robot对应的priceId配置,使用默认配置,robotId: " + robotId);
                 priceId = defaultPriceId;
             }
             Price price = Price.retrieve(priceId);
             if (price == null) {
                 log.error("{} {} price {} null", userId, robotId, priceId);
-                prometheusUtil.perf(PERF_PAYMENT_MODULE, "stripe_retrieve_price_failed");
-                prometheusUtil.perf(PERF_ERROR_MODULE, "stripe_retrieve_price_failed");
+                prometheusUtil.perf(PERF_ERROR_MODULE, "创建付款单失败-stripe获取price接口异常");
                 return ApiResult.ofFail(ErrorEnum.STRIPE_PRICE_RETRIEVE_FAILED);
             }
             PaymentIntent paymentIntent = PaymentIntent.create(PaymentIntentCreateParams.builder()
@@ -100,8 +99,7 @@ public class PaymentController {
             int effect = paymentService.addPayRequest(userId, robotId, paymentIntent.getClientSecret());
             if (effect <= 0) {
                 log.error("addPayRequest failed {} {} {}", userId, robotId, ObjectMapperUtils.toJSON(paymentIntent));
-                prometheusUtil.perf(PERF_PAYMENT_MODULE, "insert_pay_request_db_failed");
-                prometheusUtil.perf(PERF_ERROR_MODULE, "insert_pay_request_db_failed");
+                prometheusUtil.perf(PERF_ERROR_MODULE, "创建付款单失败-写入DB错误");
                 return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
             }
             result.put(DATA, PaymentIntentView.builder()
@@ -110,12 +108,11 @@ public class PaymentController {
                     .currency(price.getCurrency())
                     .unitAmount(String.valueOf(price.getUnitAmount()))
                     .build());
-            prometheusUtil.perf(PERF_PAYMENT_MODULE, "create_payment_intent_success");
+            prometheusUtil.perf(PERF_PAYMENT_MODULE, "创建付款单成功");
             return result;
         } catch (Exception e) {
             log.error("createPaymentIntent exception {} {}", userId, robotId, e);
-            prometheusUtil.perf(PERF_PAYMENT_MODULE, "create_payment_intent_exception");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "create_payment_intent_exception");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "创建付款单异常");
             throw ServiceException.ofMessage(ErrorEnum.STRIPE_CREATE_SESSION_FAILED.getErrCode(), e.getMessage());
         }
     }
@@ -123,7 +120,7 @@ public class PaymentController {
     // 回调结果处理
     @RequestMapping("/event_callback")
     public void eventCallback(HttpServletRequest request, HttpServletResponse response) {
-        prometheusUtil.perf(PERF_PAYMENT_MODULE, "event_callback_api_enter");
+        prometheusUtil.perf(PERF_PAYMENT_MODULE, "stripe回调API入口");
 
         String apiKeySalt = redisUtil.get(CacheKeyProvider.stripeApiKeySalt());
         Stripe.apiKey = CommonUtils.decryptPwd(apiKeySalt, encryptPrivateKey);
@@ -133,12 +130,12 @@ public class PaymentController {
             payload = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
             if (StringUtils.isEmpty(payload)) {
                 log.error("event callback payload empty");
-                prometheusUtil.perf(PERF_ERROR_MODULE, "callback_payload_empty");
+                prometheusUtil.perf(PERF_ERROR_MODULE, "stripe回调处理失败-payload空");
                 return;
             }
         } catch (IOException e) {
             log.error("event callback process IOException", e);
-            prometheusUtil.perf(PERF_ERROR_MODULE, "callback_payload_ioException");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "stripe回调处理失败-payload IO异常");
             return;
         }
 
@@ -151,12 +148,12 @@ public class PaymentController {
         } catch (JsonSyntaxException e) {
             // Invalid payload
             log.error("event callback payload invalid");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "callback_payload_invalid");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "stripe回调处理失败-payload无效");
             return;
         } catch (SignatureVerificationException e) {
             // Invalid signature
             log.error("event callback sig invalid");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "callback_sig_invalid");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "stripe回调处理失败-签名sig验证失败");
             return;
         }
 
@@ -166,7 +163,7 @@ public class PaymentController {
             stripeObject = dataObjectDeserializer.getObject().get();
         } else {
             log.error("event data deserializer failed {}", ObjectMapperUtils.toJSON(event));
-            prometheusUtil.perf(PERF_ERROR_MODULE, "callback_webhook_verify_failed");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "stripe回调处理失败-数据无法序列化");
             return;
         }
 
@@ -178,14 +175,13 @@ public class PaymentController {
             boolean ok = paymentService.handleUserPaymentSuccess(sessionId);
             if (!ok) {
                 log.error("updatePayRequest failed {}", sessionId);
-                prometheusUtil.perf(PERF_PAYMENT_MODULE, "event_callback_db_failed");
-                prometheusUtil.perf(PERF_ERROR_MODULE, "event_callback_db_failed");
+                prometheusUtil.perf(PERF_ERROR_MODULE, "stripe回调处理失败-DB处理错误");
                 return;
             }
         } else {
             log.warn("Unhandled event type: " + event.getType());
         }
-        prometheusUtil.perf(PERF_PAYMENT_MODULE, "event_callback_api_success");
+        prometheusUtil.perf(PERF_PAYMENT_MODULE, "stripe回调处理成功");
 
     }
 }
