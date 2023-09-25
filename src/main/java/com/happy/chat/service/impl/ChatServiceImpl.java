@@ -465,6 +465,7 @@ public class ChatServiceImpl implements ChatService {
                 json = response.body().string();
                 log.info("json {}", json);
                 Map<String, String> jsonMap = ObjectMapperUtils.fromJSON(json, Map.class, String.class, String.class);
+                prometheusUtil.perf(PERF_CHAT_MODULE, "chat_ai_resp_from_happy_model");
                 return jsonMap.get("response");
             }
         } catch (Exception e) {
@@ -521,6 +522,7 @@ public class ChatServiceImpl implements ChatService {
             prometheusUtil.perf(PERF_ERROR_MODULE, "chat_open_ai_return_empty");
             return null;
         }
+        prometheusUtil.perf(PERF_CHAT_MODULE, "chat_ai_resp_from_gpt");
         return response.getContent();
     }
 

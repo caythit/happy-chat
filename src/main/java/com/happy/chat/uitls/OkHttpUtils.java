@@ -1,7 +1,5 @@
 package com.happy.chat.uitls;
 
-import static com.happy.chat.constants.Constant.PERF_HTTP_MODULE;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -33,14 +31,7 @@ public class OkHttpUtils {
                 .addHeader("Content-Type", "application/json; charset=utf-8")
                 .build();
 
-        Response response = DEFAULT_CLIENT.newCall(request).execute();
-        //耗时监控
-        if (response.isSuccessful()) {
-            prometheusUtil.perf(PERF_HTTP_MODULE, "success");
-        } else {
-            prometheusUtil.perf(PERF_HTTP_MODULE, "failed_" + response.code());
-        }
-        return response;
+        return DEFAULT_CLIENT.newCall(request).execute();
 
     }
 }

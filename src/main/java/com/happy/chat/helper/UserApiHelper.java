@@ -99,7 +99,7 @@ public class UserApiHelper {
             prometheusUtil.perf(PERF_ERROR_MODULE, "reg_failed_by_db_error");
             return ApiResult.ofFail(SERVER_ERROR);
         }
-        prometheusUtil.perf(PERF_ERROR_MODULE, "reg_success");
+        prometheusUtil.perf(PERF_USER_MODULE, "reg_success");
         UserInfoView userView = UserInfoView.convert(user);
         result.put(DATA, userView);
         return result;
@@ -187,7 +187,7 @@ public class UserApiHelper {
             prometheusUtil.perf(PERF_ERROR_MODULE, "modify_name_failed_by_db_error");
             return ApiResult.ofFail(ErrorEnum.REBIND_EMAIL_FAIL);
         }
-        prometheusUtil.perf(PERF_ERROR_MODULE, "modify_name_success");
+        prometheusUtil.perf(PERF_USER_MODULE, "modify_name_success");
         return ApiResult.ofSuccess();
 
     }
