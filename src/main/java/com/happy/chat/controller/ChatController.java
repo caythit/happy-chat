@@ -31,7 +31,7 @@ public class ChatController {
 
     @RequestMapping("/sayHi")
     public Map<String, Object> sayHi(@RequestParam("robotId") String robotId) {
-        prometheusUtil.perf(PERF_CHAT_MODULE, "say_hello_api_enter");
+        prometheusUtil.perf(PERF_CHAT_MODULE, "破冰文案API入口");
 
         // 返回sayHi的随机文案
         return chatApiHelper.getIceBreakWords(robotId);
@@ -42,7 +42,7 @@ public class ChatController {
                                        @RequestParam(value = "ud", required = false) String dummyUid,
                                        @RequestParam("robotId") String robotId,
                                        @RequestParam("content") String content) {
-        prometheusUtil.perf(PERF_CHAT_MODULE, "request_api_enter");
+        prometheusUtil.perf(PERF_CHAT_MODULE, "聊天请求API入口");
 
         log.info("request = {} {} {} {}", userId, dummyUid, robotId, content);
         // todo 改成cookie userId
@@ -53,7 +53,7 @@ public class ChatController {
     @RequestMapping("/list")
     public Map<String, Object> list(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                     @RequestParam(value = "ud", required = false) String dummyUid) {
-        prometheusUtil.perf(PERF_CHAT_MODULE, "chat_list_api_enter");
+        prometheusUtil.perf(PERF_CHAT_MODULE, "聊天列表API入口");
 
         return chatApiHelper.listUserChat(dummyUid);
     }
@@ -63,7 +63,7 @@ public class ChatController {
     public Map<String, Object> historyChat(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                            @RequestParam(value = "ud", required = false) String dummyUid,
                                            @RequestParam("robotId") String robotId) {
-        prometheusUtil.perf(PERF_CHAT_MODULE, "history_chat_show_api_enter");
+        prometheusUtil.perf(PERF_CHAT_MODULE, "用户和AI历史聊天记录API入口");
 
         ChatHistoryView chatHistoryView = chatApiHelper.getUserRobotHistoryChats(dummyUid, robotId);
         Map<String, Object> result = ApiResult.ofSuccess();

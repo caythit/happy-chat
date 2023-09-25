@@ -76,7 +76,7 @@ public class ChatApiHelper {
         List<IceBreakWord> iceBreakWords = chatService.getIceBreakWordsByRobot(robotId);
         if (CollectionUtils.isEmpty(iceBreakWords)) {
             log.error("getIceBreakWordsByRobot empty {}", robotId);
-            prometheusUtil.perf(PERF_CHAT_MODULE, "ice_break_get_empty_" + robotId);
+            prometheusUtil.perf(PERF_CHAT_MODULE, "未获取到破冰文案: " + robotId);
             return result;
         }
 
@@ -84,14 +84,14 @@ public class ChatApiHelper {
                 .map(IceBreakWordView::convertIceBreakWord)
                 .collect(Collectors.toList());
         result.put(DATA, iceBreakWordViews);
-        prometheusUtil.perf(PERF_CHAT_MODULE, "ice_break_get_success");
+        prometheusUtil.perf(PERF_CHAT_MODULE, "获取破冰文案成功");
         return result;
     }
 
     public Map<String, Object> listUserChat(String userId) {
         List<FlirtopiaChat> flirtopiaChats = chatService.getUserHistoryChats(userId);
         if (CollectionUtils.isEmpty(flirtopiaChats)) {
-            prometheusUtil.perf(PERF_CHAT_MODULE, "user_chat_list_empty");
+            prometheusUtil.perf(PERF_CHAT_MODULE, "用户聊天列表为空");
             return ApiResult.ofSuccess();
         }
 
@@ -131,8 +131,7 @@ public class ChatApiHelper {
                 userChatListViews.add(userHistoryChatListView);
             } else {
                 log.error("robotMap not contains {}", robotId);
-                prometheusUtil.perf(PERF_CHAT_MODULE, "user_chat_list_robot_get_failed_" + robotId);
-                prometheusUtil.perf(PERF_ERROR_MODULE, "user_chat_list_robot_get_failed_" + robotId);
+                prometheusUtil.perf(PERF_ERROR_MODULE, "获取用户聊天列表异常-未能获取到AI信息: " + robotId);
             }
         }
 
@@ -142,7 +141,7 @@ public class ChatApiHelper {
                 .sorted(Comparator.comparing(UserChatListView::getLastMessageSendTime).reversed())
                 .collect(Collectors.toList());
         result.put(DATA, userChatListViews);
-        prometheusUtil.perf(PERF_CHAT_MODULE, "user_chat_list_success");
+        prometheusUtil.perf(PERF_CHAT_MODULE, "获取用户聊天列表成功");
         return result;
 
     }
@@ -164,7 +163,7 @@ public class ChatApiHelper {
             }
             return flirtopiaChatView;
         }).collect(Collectors.toList()));
-        prometheusUtil.perf(PERF_CHAT_MODULE, "user_chat_history_success");
+        prometheusUtil.perf(PERF_CHAT_MODULE, "用户和AI历史聊天记录获取成功");
         return chatHistoryView;
     }
 
@@ -173,7 +172,7 @@ public class ChatApiHelper {
         List<String> results = redisUtil.range(chatFinishPayTipsKey(), 0, -1);
         if (CollectionUtils.isEmpty(results)) {
             log.error("robot already pay tips empty");
-            prometheusUtil.perf(PERF_CHAT_MODULE, "get_robot_already_pay_tips_empty");
+            prometheusUtil.perf(PERF_CHAT_MODULE, "未获取到已付费提示文案，使用默认文案");
             return defaultAlreadyPayTips;
         }
         return results.get(RandomUtils.nextInt(0, results.size()));
@@ -203,8 +202,7 @@ public class ChatApiHelper {
         int effectRow = chatService.insert(userRequestMessage);
         if (effectRow <= 0) {
             log.error("request insert db failed {} {} {}", userId, robotId, content);
-            prometheusUtil.perf(PERF_CHAT_MODULE, "request_chat_failed_by_req_db_error");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "request_chat_failed_by_req_db_error");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "用户聊天请求内容写入DB失败");
             return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
         }
 
@@ -250,8 +248,7 @@ public class ChatApiHelper {
 
         if (effectRow <= 0) {
             log.error("response insert db failed {} {} {}", userId, robotId, content);
-            prometheusUtil.perf(PERF_CHAT_MODULE, "request_chat_failed_by_resp_db_error");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "request_chat_failed_by_resp_db_error");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "AI聊天回复内容写入DB失败");
             return ApiResult.ofFail(ErrorEnum.SERVER_ERROR);
         }
         result.put(DATA, FlirtopiaChatView.convertChat(robotRespMessage));
@@ -263,7 +260,7 @@ public class ChatApiHelper {
         List<String> defaultResps = redisUtil.range(defaultRobotRespChatKey(), 0, -1);
         if (CollectionUtils.isEmpty(defaultResps)) {
             log.error("robot default resp empty");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "get_robot_default_resp_empty");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "未能获取到AI默认回复文案，使用默认文案");
             return "I have no idea about it";
         }
         return defaultResps.get(RandomUtils.nextInt(0, defaultResps.size()));
@@ -272,7 +269,7 @@ public class ChatApiHelper {
     private List<String> getSensitiveWords() {
         List<String> sensitiveWords = redisUtil.range(chatSensitiveWordKey(), 0, -1);
         if (CollectionUtils.isEmpty(sensitiveWords)) {
-            prometheusUtil.perf(PERF_ERROR_MODULE, "get_chat_sensitive_keyword_empty");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "未能获取到敏感词列表");
         }
         return sensitiveWords;
     }

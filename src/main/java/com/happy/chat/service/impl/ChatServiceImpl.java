@@ -153,7 +153,7 @@ public class ChatServiceImpl implements ChatService {
         // 敏感词 直接返回
         if (hasSensitiveWord) {
             log.warn("user request content contains sensitive {} {} {}", userId, robotId, content);
-            prometheusUtil.perf(PERF_CHAT_MODULE, "user_word_has_sensitive");
+            prometheusUtil.perf(PERF_CHAT_MODULE, "用户聊天请求内容有敏感词，使用AI默认文案回复");
             return ChatResponse.builder()
                     .content(robotDefaultResp)
                     .useDefault(true)
@@ -331,8 +331,7 @@ public class ChatServiceImpl implements ChatService {
         // 为空
         if (StringUtils.isEmpty(content)) {
             log.error("buildChatResponse empty {} {} {}", userId, robotId, content);
-            prometheusUtil.perf(PERF_CHAT_MODULE, "chat_ai_resp_empty:" + reasonAndModel);
-            prometheusUtil.perf(PERF_ERROR_MODULE, "chat_ai_resp_empty:" + reasonAndModel);
+            prometheusUtil.perf(PERF_ERROR_MODULE, "ai聊天回复内容为空，见: " + reasonAndModel);
             return ChatResponse.builder()
                     .content(robotDefaultResp)
                     .useDefault(true)
@@ -342,14 +341,14 @@ public class ChatServiceImpl implements ChatService {
         // 敏感词
         if (hasSensitiveWord(content, sensitiveWords)) {
             log.error("buildChatResponse hasSensitiveWord {} {} {}", userId, robotId, content);
-            prometheusUtil.perf(PERF_CHAT_MODULE, "chat_ai_resp_contains_sensitive:" + reasonAndModel);
+            prometheusUtil.perf(PERF_CHAT_MODULE, "ai聊天回复内容包含敏感词，见:" + reasonAndModel);
             return ChatResponse.builder()
                     .content(robotDefaultResp)
                     .useDefault(true)
                     .reasonAndModel(reasonAndModel + ":sensitive")
                     .build();
         }
-        prometheusUtil.perf(PERF_CHAT_MODULE, "chat_ai_resp_success:" + reasonAndModel);
+        prometheusUtil.perf(PERF_CHAT_MODULE, "ai聊天回复内容成功，见:" + reasonAndModel);
         return ChatResponse.builder()
                 .content(content)
                 .reasonAndModel(reasonAndModel)
@@ -361,7 +360,7 @@ public class ChatServiceImpl implements ChatService {
         List<String> results = redisUtil.range(chatUnPayTipsKey(), 0, -1);
         if (CollectionUtils.isEmpty(results)) {
             log.error("robot unpay tips empty");
-            prometheusUtil.perf(PERF_CHAT_MODULE, "get_robot_unpay_tips_empty");
+            prometheusUtil.perf(PERF_CHAT_MODULE, "未能获取到待付费提示文案，使用默认文案");
             return defaultToPayTips;
         }
         return results.get(RandomUtils.nextInt(0, results.size()));
@@ -384,7 +383,7 @@ public class ChatServiceImpl implements ChatService {
         }
         List<String> warnList = redisUtil.range(chatWarnWordKey(), 0, -1);
         if (CollectionUtils.isEmpty(warnList)) {
-            prometheusUtil.perf(PERF_CHAT_MODULE, "get_chat_warn_keyword_empty");
+            prometheusUtil.perf(PERF_CHAT_MODULE, "未能获取到AI回复警报词列表");
             return false;
         }
         return warnList.stream()
@@ -456,7 +455,7 @@ public class ChatServiceImpl implements ChatService {
         try {
             String url = redisUtil.get(happyModelHttpUrl());
             if (StringUtils.isEmpty(url)) {
-                prometheusUtil.perf(PERF_ERROR_MODULE, "chat_happy_model_url_empty");
+                prometheusUtil.perf(PERF_ERROR_MODULE, "快乐模型URL未配置");
                 return null;
             }
             Response response = okHttpUtils.postJson(url, ObjectMapperUtils.toJSON(happyModelRequest));
@@ -465,12 +464,12 @@ public class ChatServiceImpl implements ChatService {
                 json = response.body().string();
                 log.info("json {}", json);
                 Map<String, String> jsonMap = ObjectMapperUtils.fromJSON(json, Map.class, String.class, String.class);
-                prometheusUtil.perf(PERF_CHAT_MODULE, "chat_ai_resp_from_happy_model");
+                prometheusUtil.perf(PERF_CHAT_MODULE, "请求快乐模型返回结果成功");
                 return jsonMap.get("response");
             }
         } catch (Exception e) {
             log.error("requestHappyModel exception", e);
-            prometheusUtil.perf(PERF_ERROR_MODULE, "chat_happy_model_return_empty");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "请求快乐模型返回异常");
         }
         return null;
     }
@@ -490,14 +489,14 @@ public class ChatServiceImpl implements ChatService {
         String prompt = FileUtils.getFileContent(fileName);
         if (StringUtils.isEmpty(prompt)) {
             log.error("robot {} has no prompt {} ", robotId, version);
-            prometheusUtil.perf(PERF_ERROR_MODULE, "get_robot_prompt_empty");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "未能获取到AI Prompt配置");
             return null;
         }
 
         List<String> apiKeys = redisUtil.range(gptApiTokenKey(), 0, -1);
         if (CollectionUtils.isEmpty(apiKeys)) {
             log.error("chat gpt apikey empty {}", robotId);
-            prometheusUtil.perf(PERF_ERROR_MODULE, "get_gpt_api_key_failed");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "未能获取到gptApiToken配置");
             return null;
         }
 
@@ -519,10 +518,10 @@ public class ChatServiceImpl implements ChatService {
         ChatMessage response = openAIService.requestChatCompletion(apiKeys, messages);
         if (response == null) {
             log.error("chat open ai return empty {}", robotId);
-            prometheusUtil.perf(PERF_ERROR_MODULE, "chat_open_ai_return_empty");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "请求gpt返回结果为空");
             return null;
         }
-        prometheusUtil.perf(PERF_CHAT_MODULE, "chat_ai_resp_from_gpt");
+        prometheusUtil.perf(PERF_CHAT_MODULE, "请求gpt返回结果成功");
         return response.getContent();
     }
 

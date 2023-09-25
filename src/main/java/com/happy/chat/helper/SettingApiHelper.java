@@ -29,7 +29,7 @@ public class SettingApiHelper {
         // 检查新密码的格式符合要求
         if (!CommonUtils.passwordPatternValid(pwd)) {
             log.error("forgotResetPassword failed by pattern invalid {}", email);
-            prometheusUtil.perf(PERF_SETTING_MODULE, "reset_pwd_failed_by_pattern_invalid");
+            prometheusUtil.perf(PERF_SETTING_MODULE, "忘记密码-重置密码失败-新密码格式错误");
             return ErrorEnum.PASSWORD_PATTERN_INVALID;
         }
 
@@ -39,8 +39,7 @@ public class SettingApiHelper {
         int effectRow = userService.resetUserPwd(email, salt, encryptPwd);
         if (effectRow <= 0) {
             log.error("forgotResetPassword failed by insert db {}", email);
-            prometheusUtil.perf(PERF_SETTING_MODULE, "reset_pwd_failed_by_db_error");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "reset_pwd_failed_by_db_error");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "忘记密码-重置密码失败-更新DB错误");
             return ErrorEnum.RESET_PASSWORD_FAIL;
         }
         return ErrorEnum.SUCCESS;
@@ -51,8 +50,7 @@ public class SettingApiHelper {
         int effectRow = userService.rebindEmail(userId, email);
         if (effectRow <= 0) {
             log.error("rebindEmail insert db failed {} {}", userId, email);
-            prometheusUtil.perf(PERF_SETTING_MODULE, "rebind_email_failed_by_db_error");
-            prometheusUtil.perf(PERF_ERROR_MODULE, "rebind_email_failed_by_db_error");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "修改绑定邮箱失败-更新DB错误");
             return ErrorEnum.REBIND_EMAIL_FAIL;
         }
         return ErrorEnum.SUCCESS;

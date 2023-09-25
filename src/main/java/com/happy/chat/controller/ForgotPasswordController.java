@@ -35,11 +35,11 @@ public class ForgotPasswordController {
     // 第一步 输入邮箱，发送邮箱校验码，检查：邮箱是否已被使用，没使用则提示；邮箱格式验证
     @RequestMapping("/sendEmailCode")
     public Map<String, Object> send(@RequestParam("email") String email) {
-        prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_send_email_api_enter");
+        prometheusUtil.perf(PERF_SETTING_MODULE, "忘记密码第1步-发送验证码API入口");
         ErrorEnum errorEnum = emailHelper.sendCode(email, "Verify your email address",
                 true, "forgotpwd");
         if (errorEnum == ErrorEnum.SUCCESS) {
-            prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_send_email_success");
+            prometheusUtil.perf(PERF_SETTING_MODULE, "忘记密码第1步-发送验证码成功");
             return ApiResult.ofSuccess();
         }
         return ApiResult.ofFail(errorEnum);
@@ -65,11 +65,11 @@ public class ForgotPasswordController {
     @PostMapping("/verifyEmailCode")
     public Map<String, Object> verifyEmailCode(@RequestParam("email") String email,
                                                @RequestParam("emailVerifyCode") String emailVerifyCode) {
-        prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_verify_email_api_enter");
+        prometheusUtil.perf(PERF_SETTING_MODULE, "忘记密码第2步-校验验证码API入口");
 
         ErrorEnum errorEnum = emailHelper.verifyCode(email, emailVerifyCode, "forgotPassword");
         if (errorEnum == ErrorEnum.SUCCESS) {
-            prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_verify_email_success");
+            prometheusUtil.perf(PERF_SETTING_MODULE, "忘记密码第2步-校验验证码成功");
             return ApiResult.ofSuccess();
         }
         return ApiResult.ofFail(errorEnum);
@@ -79,11 +79,11 @@ public class ForgotPasswordController {
     @PostMapping("/reset")
     public Map<String, Object> reset(@RequestParam("email") String email,
                                      @RequestParam("newPwd") String pwd) {
-        prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_reset_api_enter");
+        prometheusUtil.perf(PERF_SETTING_MODULE, "忘记密码第3步-重置密码API入口");
 
         ErrorEnum errorEnum = settingApiHelper.forgotResetPassword(email, pwd);
         if (errorEnum == ErrorEnum.SUCCESS) {
-            prometheusUtil.perf(PERF_SETTING_MODULE, "forgot_pwd_reset_success");
+            prometheusUtil.perf(PERF_SETTING_MODULE, "忘记密码第3步-重置密码成功");
             return ApiResult.ofSuccess();
         }
         return ApiResult.ofFail(errorEnum);

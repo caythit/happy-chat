@@ -1,5 +1,7 @@
 package com.happy.chat.service.impl;
 
+import static com.happy.chat.constants.Constant.PERF_ERROR_MODULE;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -95,18 +97,21 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentItem paymentItem = paymentDao.getPaymentRequest(sessionId);
         if (paymentItem == null) {
             log.error("can not find payment request {}", sessionId);
+            prometheusUtil.perf(PERF_ERROR_MODULE, "stripe回调处理失败-未能获取到支付请求");
             return false;
         }
         long expire = System.currentTimeMillis() + Duration.ofDays(30).toMillis();
         // 写入/更新下用户的订阅表信息
         int update = paymentDao.updateUserSubscribeRobot(paymentItem.getUserId(), paymentItem.getRobotId(), expire);
         if (update <= 0) {
+            prometheusUtil.perf(PERF_ERROR_MODULE, "stripe回调处理失败-更新用户订阅表异常");
             log.error("updateUserSubscribeRobot failed {} {} {}", paymentItem.getUserId(), paymentItem.getRobotId(), sessionId);
             return false;
         }
         // 更新付款请求表状态
         update = paymentDao.updateRequestState(sessionId, PaymentState.SUCCESS.getState());
         if (update <= 0) {
+            prometheusUtil.perf(PERF_ERROR_MODULE, "stripe回调处理失败-更新付款请求表异常，回滚");
             log.error("updateRequestState failed {}", sessionId);
             throw new RuntimeException("更新状态失败，回滚!");
         }
