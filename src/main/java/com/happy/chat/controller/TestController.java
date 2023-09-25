@@ -242,9 +242,5 @@ public class TestController {
     }
 
     public static void main(String[] args) {
-        System.out.println(CommonUtils.encryptPwd("stripe.apiKey", "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"));
-        System.out.println(CommonUtils.encryptPwd("stripe.webhookSecret", "whsec_Qcu5aOukJ42lDzUfGe7AE4snFLGycmYO"));
-        System.out.println(CommonUtils.encryptPwd("stripe.apiKey", "sk_test_51NPOMIBegHkiPVmEtyhXq3hPFQrXrx9oTVeobQ07bG7PKCloN8uAk4YVq9kPBbb46SgeMocpKSD9TQwuhGcJv1St000ngXvqSb"));
-        System.out.println(CommonUtils.encryptPwd("stripe.webhookSecret", "whsec_tMGmi5ui6dpSwO6oNaSoqNIUxaMP7xu8"));
     }
 }

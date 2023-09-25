@@ -49,16 +49,16 @@ public class EmailModifyController {
                                              @RequestParam("ud") String dummyUid,
                                              @RequestParam("password") String password) {
 
-        prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_check_pwd_api_enter");
+        prometheusUtil.perf(PERF_SETTING_MODULE, "修改绑定邮箱第1步-密码校验API入口");
 
         if (StringUtils.isNotEmpty(userId) && !StringUtils.equals(userId, dummyUid)) { // 登录了 需要和ud做比较
-            prometheusUtil.perf(PERF_ERROR_MODULE, "email_rebind_userid_unmatched");
+            prometheusUtil.perf(PERF_ERROR_MODULE, "修改绑定邮箱第1步失败-userId和dummyUid不匹配");
             return ApiResult.ofFail(ErrorEnum.UD_NOT_MATCHED);
         }
         // 检查旧密码是否正确
         ErrorEnum apiErrorEnum = userApiHelper.checkPassword(userId, password, "modify_email");
         if (apiErrorEnum == ErrorEnum.SUCCESS) {
-            prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_check_pwd_success");
+            prometheusUtil.perf(PERF_SETTING_MODULE, "修改绑定邮箱第1步-密码校验成功");
             return ApiResult.ofSuccess();
         }
         return ApiResult.ofFail(apiErrorEnum);
@@ -68,12 +68,12 @@ public class EmailModifyController {
     @LoginRequired
     @RequestMapping("/sendEmailCode")
     public Map<String, Object> send(@RequestParam("email") String email) {
-        prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_send_email_api_enter");
+        prometheusUtil.perf(PERF_SETTING_MODULE, "修改绑定邮箱第2步-发送验证码API入口");
 
         // 验证邮箱
         ErrorEnum errorEnum = emailHelper.sendCode(email, "Verify your email address", false, "bindemail");
         if (errorEnum == ErrorEnum.SUCCESS) {
-            prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_send_email_success");
+            prometheusUtil.perf(PERF_SETTING_MODULE, "修改绑定邮箱第2步-发送验证码成功");
             return ApiResult.ofSuccess();
         }
         return ApiResult.ofFail(errorEnum);
@@ -85,14 +85,14 @@ public class EmailModifyController {
     public Map<String, Object> verifyEmailCode(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                                @RequestParam("email") String email,
                                                @RequestParam("emailVerifyCode") String emailVerifyCode) {
-        prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_verify_code_api_enter");
+        prometheusUtil.perf(PERF_SETTING_MODULE, "修改绑定邮箱第3步-校验验证码API入口");
 
         ErrorEnum errorEnum = emailHelper.verifyCode(email, emailVerifyCode, "modifyEmail");
         if (errorEnum == ErrorEnum.SUCCESS) {
-            prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_verify_code_success");
+            prometheusUtil.perf(PERF_SETTING_MODULE, "修改绑定邮箱第3步-校验验证码成功");
             errorEnum = settingApiHelper.rebindEmail(userId, email);
             if (errorEnum == ErrorEnum.SUCCESS) {
-                prometheusUtil.perf(PERF_SETTING_MODULE, "email_rebind_success");
+                prometheusUtil.perf(PERF_SETTING_MODULE, "修改绑定邮箱第3步-修改成功");
                 return ApiResult.ofSuccess();
             }
         }
