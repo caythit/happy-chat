@@ -29,6 +29,7 @@ public final class ObjectMapperUtils {
 
     private static final ObjectMapper MAPPER = new ObjectMapper(new JsonFactory().disable(INTERN_FIELD_NAMES));
 
+
     static {
         MAPPER.disable(FAIL_ON_UNKNOWN_PROPERTIES);
         MAPPER.enable(ALLOW_UNQUOTED_CONTROL_CHARS);
