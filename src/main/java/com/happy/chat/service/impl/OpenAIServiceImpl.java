@@ -1,5 +1,6 @@
 package com.happy.chat.service.impl;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class OpenAIServiceImpl implements OpenAIService {
     @Override
     public ChatMessage requestChatCompletion(List<String> apiTokens, List<ChatMessage> messages) {
         for (String apiToken : apiTokens) {
-            OpenAiService service = new OpenAiService(apiToken);
+            OpenAiService service = new OpenAiService(apiToken, Duration.ofSeconds(30));
 
             ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
                     .model("gpt-3.5-turbo")
