@@ -28,7 +28,8 @@ public enum ErrorEnum {
 
     CHAT_NO_RESP(80001, "chat无响应"),
     STRIPE_PRICE_RETRIEVE_FAILED(90001, "stripe price获取失败"),
-    STRIPE_CREATE_SESSION_FAILED(90002, "stripe创建session失败"),
+    STRIPE_PRICE_UN_CONFIG(90002, "未配置stripe priceId"),
+    STRIPE_CREATE_SESSION_FAILED(90003, "stripe创建session失败"),
 
 
     ;

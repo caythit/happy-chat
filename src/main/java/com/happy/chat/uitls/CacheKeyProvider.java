@@ -100,6 +100,10 @@ public class CacheKeyProvider {
         return PREFIX.concat(String.format("robotStripePriceId:%s", robotId));
     }
 
+    public static String robotDefaultStripePriceIdKey() {
+        return PREFIX.concat("robotDefaultStripePriceId");
+    }
+
     public static String happyModelHttpUrl() {
         return PREFIX.concat("happyModelHttpUrl");
     }

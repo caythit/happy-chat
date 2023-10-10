@@ -48,7 +48,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/rest/h/payment")
 public class PaymentController {
 
-    private final String defaultPriceId = "price_1NiCirBegHkiPVmE9hDFX5gJ";
     @Autowired
     private PrometheusUtils prometheusUtil;
 
@@ -81,9 +80,9 @@ public class PaymentController {
             // 根据robot拿到它的priceId
             String priceId = robotService.getRobotStripePriceId(robotId);
             if (StringUtils.isEmpty(priceId)) {
-                log.warn("{} has no config price", robotId);
-                prometheusUtil.perf(PERF_PAYMENT_MODULE, "未找到robot对应的priceId配置,使用默认配置,robotId: " + robotId);
-                priceId = defaultPriceId;
+                log.error("{} has no config price", robotId);
+                prometheusUtil.perf(PERF_ERROR_MODULE, "未找到robot对应的priceId配置");
+                return ApiResult.ofFail(ErrorEnum.STRIPE_PRICE_UN_CONFIG);
             }
             Price price = Price.retrieve(priceId);
             if (price == null) {

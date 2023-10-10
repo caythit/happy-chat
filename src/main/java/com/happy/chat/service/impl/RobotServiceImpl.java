@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,10 @@ public class RobotServiceImpl implements RobotService {
 
     @Override
     public String getRobotStripePriceId(String robotId) {
-        return redisUtil.get(CacheKeyProvider.robotStripePriceIdKey(robotId));
+        String value = redisUtil.get(CacheKeyProvider.robotStripePriceIdKey(robotId));
+        if (StringUtils.isNotEmpty(value)) {
+            return value;
+        }
+        return redisUtil.get(CacheKeyProvider.robotDefaultStripePriceIdKey());
     }
 }

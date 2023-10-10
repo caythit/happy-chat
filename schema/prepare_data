@@ -85,24 +85,33 @@ insert into robot_ice_break_word(robot_id, content,create_time,update_time) valu
         每个机器人对应的stripe priceId配置。set robotStripePriceId:xxx "xxx"
 
     手动执行命令：
-        lpush flirtopia:gptApiToken "xxxx"
-        set flirtopia:happyModelHttpUrl "xxx"
+        1、gpt api token
+            lpush flirtopia:gptApiToken "xxxx"
+        2、快乐模型http地址
+            set flirtopia:happyModelHttpUrl "xxx"
+        3、stripe ai对应的priceId
+            优先取每个ai配置的priceId，如果没有则取默认兜底的priceId（避免配置麻烦）
 
-        set flirtopia:robotStripePriceId:rb_test1 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test2 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test3 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test4 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test5 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test6 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test7 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test8 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test9 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test10 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test11 "price_1NzHrvBegHkiPVmEh4EDgsrn"
-        set flirtopia:robotStripePriceId:rb_test12 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+            默认兜底配置
+                set flirtopia:robotDefaultStripePriceId "price_1NzHrvBegHkiPVmEh4EDgsrn"
+            每个ai对应配置
+                set flirtopia:robotStripePriceId:rb_test1 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test2 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test3 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test4 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test5 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test6 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test7 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test8 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test9 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test10 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test11 "price_1NzHrvBegHkiPVmEh4EDgsrn"
+                set flirtopia:robotStripePriceId:rb_test12 "price_1NzHrvBegHkiPVmEh4EDgsrn"
 
-        set flirtopia:stripeApiKeySalt "xxx"
-        set flirtopia:stripeWebhookSecretSalt "xxx"
+        4、stripe api key加盐
+            set flirtopia:stripeApiKeySalt "xxx"
+        5、stripe webhook secret加盐
+            set flirtopia:stripeWebhookSecretSalt "xxx"
 
 
 二、程序执行时会写的缓存：
