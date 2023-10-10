@@ -178,7 +178,7 @@ public class PaymentController {
                 return;
             }
         } else {
-            log.warn("Unhandled event type: " + event.getType());
+            log.info("Unhandled event type: " + event.getType());
         }
         prometheusUtil.perf(PERF_PAYMENT_MODULE, "stripe回调处理成功");
 
