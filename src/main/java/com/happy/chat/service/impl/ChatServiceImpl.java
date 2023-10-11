@@ -174,6 +174,39 @@ public class ChatServiceImpl implements ChatService {
     }
 
     /**
+     * 已付费 热情版gpt回复
+     *
+     * @param userId
+     * @param robotId
+     * @param content
+     * @param userHistoryMessages
+     * @return
+     */
+    private ChatResponse getRobotAlreadyPaidRespFromAdvancedGpt(String userId, String robotId,
+                                                                String content, List<FlirtopiaChat> userHistoryMessages,
+                                                                String robotDefaultResp, List<String> sensitiveWords) {
+        String respContent = requestChatgpt(robotId, advancedVersionGpt, content, userHistoryMessages);
+        // 没拿到，直接return
+        if (StringUtils.isEmpty(respContent)) {
+            return buildChatResponse(userId, robotId, respContent, "alreadyPaidAdvancedGptEmpty:Default", robotDefaultResp, sensitiveWords);
+        }
+
+        //内容是否警报
+        boolean contentHasWarn = chatgptRespHasWarn(respContent);
+
+        //出现警报，直接请求快乐模型
+        if (contentHasWarn) {
+            String happyResp = requestHappyModel(robotId, content, userHistoryMessages);
+            ChatResponse chatResponse = buildChatResponse(userId, robotId, happyResp, "alreadyPaidAdvancedGptWarn:HappyModel", robotDefaultResp, sensitiveWords);
+            if (!chatResponse.isUseDefault()) {
+                updateHappyModelLatestTime(userId, robotId);
+            }
+            return chatResponse;
+        }
+        return buildChatResponse(userId, robotId, respContent, "alreadyPaidAdvancedGptNoWarn:AdvancedGpt", robotDefaultResp, sensitiveWords);
+    }
+
+    /**
      * 未付费的ai回复
      *
      * @param userId
@@ -189,21 +222,12 @@ public class ChatServiceImpl implements ChatService {
         boolean timeForExit = checkTimeForExitHappyModel(userId, robotId);
         // 没退场 使用快乐模型回复
         if (!timeForExit) {
-            String aiRespContent = requestHappyModel(robotId, content, userHistoryMessages);
-            ChatResponse chatResponse = buildChatResponse(userId, robotId, aiRespContent,
-                    "unPaidTimeNotExit:HappyModel", robotDefaultResp, sensitiveWords);
-
-            // 来自快乐模型的回复 要更新下时间
-            if (!chatResponse.isUseDefault()) {
-                updateHappyModelLatestTime(userId, robotId);
-                chatResponse.setPayTips(getUnPayTips());
-            }
-            return chatResponse;
+            return getRobotUnPaidRespFromHappyModel(userId, robotId, content, userHistoryMessages,
+                    robotDefaultResp, sensitiveWords);
         }
 
         // 即从没进去过快乐模型，退场，轮次够，使用热情版gpt
         if (isEnterChatgptAdvancedModel(userHistoryMessages)) {
-            log.info("isEnterChatgptAdvancedModel {} {}", userId, robotId);
             return getRobotUnPaidRespFromAdvancedGpt(userId, robotId, content, userHistoryMessages,
                     robotDefaultResp, sensitiveWords);
         }
@@ -212,6 +236,29 @@ public class ChatServiceImpl implements ChatService {
                 robotDefaultResp, sensitiveWords);
     }
 
+    /**
+     * 未付费 快乐模型回复
+     *
+     * @param userId
+     * @param robotId
+     * @param content
+     * @param userHistoryMessages
+     * @return
+     */
+    private ChatResponse getRobotUnPaidRespFromHappyModel(String userId, String robotId,
+                                                          String content, List<FlirtopiaChat> userHistoryMessages,
+                                                          String robotDefaultResp, List<String> sensitiveWords) {
+        String aiRespContent = requestHappyModel(robotId, content, userHistoryMessages);
+        ChatResponse chatResponse = buildChatResponse(userId, robotId, aiRespContent,
+                "unPaidTimeNotExit:HappyModel", robotDefaultResp, sensitiveWords);
+
+        // 来自快乐模型的回复 要更新下时间
+        if (!chatResponse.isUseDefault()) {
+            updateHappyModelLatestTime(userId, robotId);
+            chatResponse.setPayTips(getUnPayTips());
+        }
+        return chatResponse;
+    }
 
     /**
      * 未付费 热情版gpt回复
@@ -310,11 +357,28 @@ public class ChatServiceImpl implements ChatService {
                                                  String robotDefaultResp, List<String> sensitiveWords) {
         // 快乐模型是否退场机制
         boolean timeForExit = checkTimeForExitHappyModel(userId, robotId);
-        if (timeForExit) { //退场，回退到请求热情版
-            String responseContent = requestChatgpt(robotId, advancedVersionGpt, userReqContent, userHistoryMessages);
-            return buildChatResponse(userId, robotId, responseContent,
-                    "alreadyPaidHappyModelTimeExit:AdvancedGpt", robotDefaultResp, sensitiveWords);
+        if (timeForExit) { //退场，回退到请求热情版，同样需要看下警报词
+            return getRobotAlreadyPaidRespFromAdvancedGpt(userId, robotId, userReqContent, userHistoryMessages,
+                    robotDefaultResp, sensitiveWords);
         }
+        return getRobotAlreadyPaidRespFromHappyModel(userId, robotId, userReqContent, userHistoryMessages,
+                robotDefaultResp, sensitiveWords);
+
+    }
+
+    /**
+     * 已付费 快乐模型回复
+     *
+     * @param userId
+     * @param robotId
+     * @param userReqContent
+     * @param userHistoryMessages
+     * @param robotDefaultResp
+     * @param sensitiveWords
+     * @return
+     */
+    private ChatResponse getRobotAlreadyPaidRespFromHappyModel(String userId, String robotId, String userReqContent,
+                                                               List<FlirtopiaChat> userHistoryMessages, String robotDefaultResp, List<String> sensitiveWords) {
         // 未退场
         String responseContent = requestHappyModel(robotId, userReqContent, userHistoryMessages);
         ChatResponse chatResponse = buildChatResponse(userId, robotId, responseContent,
