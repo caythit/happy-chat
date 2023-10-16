@@ -125,7 +125,7 @@ public class TestController {
 
 
         // 退场机制时间
-        redisUtil.set(userExitHappyModelExpireMillsKey(), "300000");
+        redisUtil.set(userExitHappyModelExpireMillsKey(), "1800000");
         result.put(userExitHappyModelExpireMillsKey(), redisUtil.get(userExitHappyModelExpireMillsKey()));
 
         // 聊天请求热情版gpt触发消息条数

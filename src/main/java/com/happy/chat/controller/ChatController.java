@@ -44,8 +44,6 @@ public class ChatController {
                                        @RequestParam("content") String content) {
         prometheusUtil.perf(PERF_CHAT_MODULE, "聊天请求API入口");
 
-        log.info("request = {} {} {} {}", userId, dummyUid, robotId, content);
-        // todo 改成cookie userId
         return chatApiHelper.request(dummyUid, robotId, content);
     }
 

@@ -84,7 +84,6 @@ public class UserController {
     public Map<String, Object> modifyUserName(@CookieValue(value = COOKIE_SESSION_ID, defaultValue = "") String userId,
                                               @RequestParam("userName") String userName) {
         prometheusUtil.perf(PERF_USER_MODULE, "修改用户名API入口");
-        log.info("modifyUserName, userId={}, userName={}", userId, userName);
         return useHelper.modifyUserName(userId, userName);
     }
 

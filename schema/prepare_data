@@ -80,7 +80,7 @@ insert into robot_ice_break_word(robot_id, content,create_time,update_time) valu
         聊天请求热情版gpt触发消息条数，默认10条，所有AI公用。"userEnterChatgptAdvanceModelThresholdKey"
         聊天普通版gpt警报阈值次数 默认3次 所有AI公用。"userChatgptWarnMaxCountKey"
 
-        用户进入快乐模型过期时间，用作退场机制，逻辑="当前时间减去最后一次进入快乐模型时间是否超过过期时间"，默认5分钟。"userExitHappyModelExpireMillsKey"
+        用户进入快乐模型过期时间，用作退场机制，逻辑="当前时间减去最后一次进入快乐模型时间是否超过过期时间"，默认30分钟。"userExitHappyModelExpireMillsKey"
 
         每个机器人对应的stripe priceId配置。set robotStripePriceId:xxx "xxx"
 
